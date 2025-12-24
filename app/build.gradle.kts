@@ -9,7 +9,8 @@ plugins {
     id("com.google.devtools.ksp") version "2.0.21-1.0.27"
 
     id("com.google.dagger.hilt.android") version "2.57.2"
-    id("androidx.navigation.safeargs.kotlin") version "2.9.5"
+    id("androidx.navigation.safeargs.kotlin") version "2.9.6"
+    id("kotlin-parcelize")
 }
 
 android {
@@ -35,6 +36,11 @@ android {
             )
         }
     }
+
+    hilt {
+        enableAggregatingTask = false
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -49,6 +55,11 @@ android {
 }
 
 dependencies {
+
+    // Ghettoxide for architecture
+    api("com.github.Cortlandd:Ghettoxide:1.0.7")
+
+    implementation("androidx.datastore:datastore-preferences:1.2.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -71,6 +82,9 @@ dependencies {
     implementation(libs.androidx.preference)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+
+    // Image loading with Glide
+    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -96,6 +110,12 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.fragment)
 
-    // Glide for image loading
-    api("com.github.bumptech.glide:glide:5.0.5")
+    // JSoup
+    implementation("org.jsoup:jsoup:1.19.1")
+}
+
+ksp {
+    arg("room.schemaLocation", "${projectDir}/schemas")
+    arg("room.incremental", "true")
+    arg("room.generateKotlin", "true")
 }
