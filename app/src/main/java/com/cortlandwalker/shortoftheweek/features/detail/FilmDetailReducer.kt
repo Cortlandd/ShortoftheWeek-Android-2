@@ -23,7 +23,11 @@ class FilmDetailReducer @Inject constructor(
 
             is FilmDetailAction.Loaded -> {
                 state { s ->
-                    val mode = if (action.film != null) ViewDisplayMode.Content else ViewDisplayMode.Error("Not found")
+                    val mode = if (action.film != null) {
+                        ViewDisplayMode.Content
+                    } else {
+                        ViewDisplayMode.Error("Not found")
+                    }
                     s.copy(
                         film = action.film,
                         viewDisplayMode = mode,
