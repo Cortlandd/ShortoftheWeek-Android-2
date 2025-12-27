@@ -2,16 +2,23 @@ package com.cortlandwalker.shortoftheweek.features.news
 
 import android.util.Log
 import com.cortlandwalker.ghettoxide.Reducer
+import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.features.home.HomeAction
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@HiltViewModel
 class NewsReducer @Inject constructor(
     private val repo: FilmRepository
-) : Reducer<NewsState, NewsAction, NewsEffect>() {
+) : ViewModelReducer<NewsState, NewsAction, NewsEffect>(NewsState()) {
+
+    init {
+        postAction(onLoadAction())
+    }
 
     override fun onLoadAction(): NewsAction = NewsAction.OnLoad
 
@@ -38,7 +45,7 @@ class NewsReducer @Inject constructor(
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
-            is NewsAction.OnFilmSelected -> emit(NewsEffect.OpenFilmDetail(action.film.id))
+            is NewsAction.OnFilmSelected -> emit(NewsEffect.OpenFilmDetail(action.film))
         }
     }
 

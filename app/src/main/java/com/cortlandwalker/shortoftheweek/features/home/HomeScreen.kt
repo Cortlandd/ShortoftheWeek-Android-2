@@ -1,5 +1,9 @@
 package com.cortlandwalker.shortoftheweek.features.home
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,23 +38,33 @@ import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreen(state: HomeState, reducer: HomeReducer) {
+fun HomeScreen(
+    state: HomeState,
+    reducer: HomeReducer,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
+) {
     HomeScreenContent(
         state = state,
         onRefresh = { reducer.postAction(HomeAction.OnRefresh) },
         onFilmClick = { reducer.postAction(HomeAction.OnFilmSelected(it)) },
-        onLoadMore = { reducer.postAction(HomeAction.OnLoadMore) }
+        onLoadMore = { reducer.postAction(HomeAction.OnLoadMore) },
+        animatedVisibilityScope = animatedVisibilityScope,
+        sharedTransitionScope = sharedTransitionScope
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreenContent(
     state: HomeState,
     onRefresh: () -> Unit,
     onFilmClick: (Film) -> Unit,
     onLoadMore: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
 ) {
     PullToRefreshBox(
         isRefreshing = state.isRefreshing,
@@ -65,8 +79,11 @@ fun HomeScreenContent(
                     items(state.items, key = { it.id }) { film ->
                         FilmCard(
                             film = film,
-                            sharedKey = "home-${film.id}",
-                            onClick = { onFilmClick(film) }
+                            // Ensure this key matches the one in FilmDetailScreen
+                            sharedKey = "image-${film.id}",
+                            onClick = { onFilmClick(film) },
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            sharedTransitionScope = sharedTransitionScope
                         )
                     }
 
@@ -138,51 +155,56 @@ fun HomeScreenContent(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = false)
 @Composable
 private fun HomeScreenPreview() {
     ShortOfTheWeekTheme {
-        HomeScreenContent(
-            state = HomeState(
-                viewDisplayMode = ViewDisplayMode.Content,
-                items = listOf(
-                    Film(
-                        id = 1,
-                        kind = Film.Kind.VIDEO,
-                        title = "No Vacancy",
-                        slug = "no-vacancy",
-                        synopsis = "A restless, beautifully disorienting swirl.",
-                        postDate = "2024-09-01",
-                        backgroundImageUrl = "https://www.shortoftheweek.com/wp-content/uploads/2024/09/NoVacancy_Thumb.jpg",
-                        thumbnailUrl = null,
-                        filmmaker = "Miguel Rodrick",
-                        production = "Short of the Week",
-                        durationMinutes = 12,
-                        playUrl = "https://www.shortoftheweek.com/2024/09/no-vacancy/",
-                        textColorHex = "#FFFFFF",
-                        articleHtml = "<p>Preview</p>"
-                    ),
-                    Film(
-                        id = 2,
-                        kind = Film.Kind.VIDEO,
-                        title = "No Vacancy",
-                        slug = "no-vacancy",
-                        synopsis = "A restless, beautifully disorienting swirl.",
-                        postDate = "2024-09-01",
-                        backgroundImageUrl = "https://www.shortoftheweek.com/wp-content/uploads/2024/09/NoVacancy_Thumb.jpg",
-                        thumbnailUrl = null,
-                        filmmaker = "Miguel Rodrick",
-                        production = "Short of the Week",
-                        durationMinutes = 12,
-                        playUrl = "https://www.shortoftheweek.com/2024/09/no-vacancy/",
-                        textColorHex = "#FFFFFF",
-                        articleHtml = "<p>Preview</p>"
+        SharedTransitionLayout {
+            HomeScreenContent(
+                state = HomeState(
+                    viewDisplayMode = ViewDisplayMode.Content,
+                    items = listOf(
+                        Film(
+                            id = 1,
+                            kind = Film.Kind.VIDEO,
+                            title = "No Vacancy",
+                            slug = "no-vacancy",
+                            synopsis = "A restless, beautifully disorienting swirl.",
+                            postDate = "2024-09-01",
+                            backgroundImageUrl = "https://www.shortoftheweek.com/wp-content/uploads/2024/09/NoVacancy_Thumb.jpg",
+                            thumbnailUrl = null,
+                            filmmaker = "Miguel Rodrick",
+                            production = "Short of the Week",
+                            durationMinutes = 12,
+                            playUrl = "https://www.shortoftheweek.com/2024/09/no-vacancy/",
+                            textColorHex = "#FFFFFF",
+                            articleHtml = "<p>Preview</p>"
+                        ),
+                        Film(
+                            id = 2,
+                            kind = Film.Kind.VIDEO,
+                            title = "No Vacancy",
+                            slug = "no-vacancy",
+                            synopsis = "A restless, beautifully disorienting swirl.",
+                            postDate = "2024-09-01",
+                            backgroundImageUrl = "https://www.shortoftheweek.com/wp-content/uploads/2024/09/NoVacancy_Thumb.jpg",
+                            thumbnailUrl = null,
+                            filmmaker = "Miguel Rodrick",
+                            production = "Short of the Week",
+                            durationMinutes = 12,
+                            playUrl = "https://www.shortoftheweek.com/2024/09/no-vacancy/",
+                            textColorHex = "#FFFFFF",
+                            articleHtml = "<p>Preview</p>"
+                        )
                     )
-                )
-            ),
-            onRefresh = {},
-            onFilmClick = {},
-            onLoadMore = {}
-        )
+                ),
+                onRefresh = {},
+                onFilmClick = {},
+                onLoadMore = {},
+                animatedVisibilityScope = this as AnimatedVisibilityScope,
+                sharedTransitionScope = this
+            )
+        }
     }
 }

@@ -22,5 +22,5 @@ sealed interface HomeAction {
 }
 
 sealed interface HomeEffect {
-    data class OpenFilmDetail(val filmId: Int) : HomeEffect
+    data class OpenFilmDetail(val film: Film) : HomeEffect
 }

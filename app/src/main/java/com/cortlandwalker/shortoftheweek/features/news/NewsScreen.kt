@@ -1,5 +1,8 @@
 package com.cortlandwalker.shortoftheweek.features.news
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -39,23 +42,33 @@ import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun NewsScreen(state: NewsState, reducer: NewsReducer) {
+fun NewsScreen(
+    state: NewsState,
+    reducer: NewsReducer,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
+) {
     NewsScreenContent(
         state = state,
         onRefresh = { reducer.postAction(NewsAction.OnRefresh) },
         onFilmClick = { reducer.postAction(NewsAction.OnFilmSelected(it)) },
-        onLoadMore = { reducer.postAction(NewsAction.OnLoadMore) }
+        onLoadMore = { reducer.postAction(NewsAction.OnLoadMore) },
+        animatedVisibilityScope = animatedVisibilityScope,
+        sharedTransitionScope = sharedTransitionScope
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun NewsScreenContent(
     state: NewsState,
     onRefresh: () -> Unit,
     onFilmClick: (Film) -> Unit,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         PullToRefreshBox(
@@ -71,8 +84,11 @@ fun NewsScreenContent(
                         items(state.items, key = { it.id }) { film ->
                             FilmCard(
                                 film = film,
-                                sharedKey = "news-${film.id}",
-                                onClick = { onFilmClick(film) }
+                                // Ensure this key matches the one in FilmDetailScreen
+                                sharedKey = "image-${film.id}",
+                                onClick = { onFilmClick(film) },
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                sharedTransitionScope = sharedTransitionScope
                             )
                         }
 
@@ -103,7 +119,8 @@ fun NewsScreenContent(
                                 state.canLoadMore -> {
                                     Box(
                                         modifier = Modifier
-                                            .fillMaxWidth().height(44.dp),
+                                            .fillMaxWidth()
+                                            .height(44.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Button(
@@ -173,6 +190,7 @@ private fun NewsBannerHeader() {
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = false)
 @Composable
 private fun NewsScreenPreview() {
@@ -201,7 +219,9 @@ private fun NewsScreenPreview() {
             ),
             onRefresh = {},
             onFilmClick = {},
-            onLoadMore = {}
+            onLoadMore = {},
+            animatedVisibilityScope = TODO(),
+            sharedTransitionScope = TODO()
         )
     }
 }

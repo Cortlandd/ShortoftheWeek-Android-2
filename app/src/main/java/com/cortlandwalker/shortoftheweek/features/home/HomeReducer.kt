@@ -2,15 +2,22 @@ package com.cortlandwalker.shortoftheweek.features.home
 
 import android.util.Log
 import com.cortlandwalker.ghettoxide.Reducer
+import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@HiltViewModel
 class HomeReducer @Inject constructor(
     private val repo: FilmRepository
-) : Reducer<HomeState, HomeAction, HomeEffect>() {
+) : ViewModelReducer<HomeState, HomeAction, HomeEffect>(HomeState()) {
+
+    init {
+        postAction(onLoadAction())
+    }
 
     override fun onLoadAction(): HomeAction = HomeAction.OnLoad
 
@@ -37,7 +44,7 @@ class HomeReducer @Inject constructor(
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
-            is HomeAction.OnFilmSelected -> emit(HomeEffect.OpenFilmDetail(action.film.id))
+            is HomeAction.OnFilmSelected -> emit(HomeEffect.OpenFilmDetail(action.film))
         }
     }
 

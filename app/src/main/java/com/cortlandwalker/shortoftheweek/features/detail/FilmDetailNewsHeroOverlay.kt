@@ -47,10 +47,11 @@ fun FilmDetailNewsHeroOverlay(film: Film) {
             text = film.title.decodeHtmlEntities().uppercase(),
             style = MaterialTheme.typography.headlineMedium,
             color = Color.White,
-            maxLines = 3,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             fontFamily = DomDiagonal,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 10.dp)
         )
 
         film.author?.displayName?.let {

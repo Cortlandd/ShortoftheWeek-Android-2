@@ -1,8 +1,12 @@
 package com.cortlandwalker.shortoftheweek.features.detail
 
-import android.annotation.SuppressLint
-import android.webkit.JavascriptInterface
-import android.webkit.WebView
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.copy
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,28 +20,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
@@ -47,10 +48,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
-import com.cortlandwalker.shortoftheweek.R
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.core.helpers.article.ArticleBlocksView
 import com.cortlandwalker.shortoftheweek.core.helpers.article.ArticleParser
@@ -60,64 +59,143 @@ import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.data.models.isNews
 import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
-import com.cortlandwalker.shortoftheweek.ui.theme.Futura
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun FilmDetailScreen(state: FilmDetailState, reducer: FilmDetailReducer) {
+fun FilmDetailScreen(
+    state: FilmDetailState,
+    reducer: FilmDetailReducer,
+    cachedId: Int,
+    cachedThumbnail: String?,
+    onBack: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
+) {
     FilmDetailScreenContent(
         state = state,
         onRefresh = { reducer.postAction(FilmDetailAction.OnRefresh) },
-        onPlay = { reducer.postAction(FilmDetailAction.OnPlayPressed) }
+        onPlay = { reducer.postAction(FilmDetailAction.OnPlayPressed) },
+        onBack = onBack,
+        cachedId = cachedId,
+        cachedThumbnail = cachedThumbnail,
+        animatedVisibilityScope = animatedVisibilityScope,
+        sharedTransitionScope = sharedTransitionScope
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun FilmDetailScreenContent(
     state: FilmDetailState,
     onRefresh: () -> Unit,
     onPlay: () -> Unit,
+    onBack: () -> Unit,
+    cachedId: Int,
+    cachedThumbnail: String?,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
 ) {
-    PullToRefreshBox(
-        isRefreshing = state.isRefreshing,
-        onRefresh = onRefresh,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        when (val mode = state.viewDisplayMode) {
-            ViewDisplayMode.Loading -> Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+    Scaffold(
+        containerColor = Color.Black,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onBack,
+                containerColor = Color.White,
+                contentColor = Color.Black
             ) {
-                CircularProgressIndicator()
+                Icon(imageVector = Icons.Outlined.Close, contentDescription = "Back")
             }
+        }
+    ) { paddingValues ->
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.Black)
+        ) {
+            when (val mode = state.viewDisplayMode) {
+                ViewDisplayMode.Loading -> {
+                    // RENDER HERO IMMEDIATELY so transition has a target
+                    Column(Modifier.fillMaxSize()) {
+                        // Create a dummy/partial film object for the header
+                        val partialFilm = state.film ?: Film(
+                            id = cachedId,
+                            // Provide sensible defaults for required fields to satisfy the constructor
+                            kind = Film.Kind.VIDEO,
+                            title = "",
+                            slug = "",
+                            synopsis = "",
+                            postDate = "",
+                            backgroundImageUrl = cachedThumbnail,
+                            thumbnailUrl = cachedThumbnail,
+                            filmmaker = null,
+                            production = null,
+                            durationMinutes = null,
+                            playUrl = null,
+                            playLinkTarget = null,
+                            textColorHex = "#FFFFFF",
+                            twitterText = null,
+                            articleHtml = "",
+                            labels = emptyList(),
+                            subscriptions = false
+                        )
 
-            is ViewDisplayMode.Error -> CenterMessage(mode.message)
+                        HeroHeader(
+                            film = partialFilm,
+                            isPlaying = false,
+                            onPlay = {},
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            sharedTransitionScope = sharedTransitionScope
+                        )
 
-            ViewDisplayMode.Empty -> {
-                CenterMessage("Not found")
-            }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                }
 
-            ViewDisplayMode.Content -> {
-                val film = state.film
-                if (film == null) {
+                is ViewDisplayMode.Error -> CenterMessage(mode.message)
+
+                ViewDisplayMode.Empty -> {
                     CenterMessage("Not found")
-                } else {
-                    FilmDetailBody(
-                        film = film,
-                        isPlaying = state.isPlaying,
-                        onPlay = onPlay
-                    )
+                }
+
+                ViewDisplayMode.Content -> {
+                    val film = state.film
+                    if (film == null) {
+                        CenterMessage("Not found")
+                    } else {
+                        FilmDetailBody(
+                            film = film,
+                            isPlaying = state.isPlaying,
+                            onPlay = onPlay,
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            sharedTransitionScope = sharedTransitionScope
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-private fun FilmDetailBody(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
+private fun FilmDetailBody(
+    film: Film,
+    isPlaying: Boolean,
+    onPlay: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
+) {
     val scroll = rememberScrollState()
     Column(
         modifier = Modifier
@@ -125,24 +203,31 @@ private fun FilmDetailBody(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
             .background(Color(0xFFD7E0DB))
             .verticalScroll(scroll)
     ) {
-        HeroHeader(film = film, isPlaying = isPlaying, onPlay = onPlay)
+        HeroHeader(
+            film = film,
+            isPlaying = isPlaying,
+            onPlay = onPlay,
+            animatedVisibilityScope = animatedVisibilityScope,
+            sharedTransitionScope = sharedTransitionScope
+        )
 
         if (!film.isNews) {
             Topic(film = film)
-
             CreditsHeader(film = film)
         }
-
-//        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-//            ArticleHtml(html = film.articleHtml)
-//        }
         DetailBody(film = film)
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalGlideComposeApi::class)
 @Composable
-private fun HeroHeader(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
+private fun HeroHeader(
+    film: Film,
+    isPlaying: Boolean,
+    onPlay: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
+) {
     val imageUrl = film.backgroundImageUrl ?: film.thumbnailUrl
     val playUrl = film.playUrl
 
@@ -152,23 +237,32 @@ private fun HeroHeader(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
             .height(320.dp)
             .background(Color.Black)
     ) {
-        // Video revealed
         if (!playUrl.isNullOrBlank() && isPlaying && !LocalInspectionMode.current) {
             key(playUrl) {
                 FilmVideoEmbedView(url = playUrl)
             }
         } else {
-            // Thumbnail / background
             if (!imageUrl.isNullOrBlank()) {
-                GlideImage(
-                    model = imageUrl,
-                    contentScale = ContentScale.FillBounds,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                with(sharedTransitionScope) {
+                    GlideImage(
+                        model = imageUrl,
+                        contentScale = ContentScale.FillBounds,
+                        contentDescription = null,
+                        transition = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black)
+                            .sharedElement(
+                                sharedContentState = rememberSharedContentState(key = "image-${film.id}"),
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                boundsTransform = { _, _ ->
+                                    tween(durationMillis = 400)
+                                }
+                            )
+                    )
+                }
             }
 
-            // Gradient overlay like iOS
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -183,7 +277,6 @@ private fun HeroHeader(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
                     )
             )
 
-            // Tap anywhere to play (only if video exists)
             if (!playUrl.isNullOrBlank()) {
                 Box(
                     modifier = Modifier
@@ -192,11 +285,9 @@ private fun HeroHeader(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
                 )
             }
 
-            // Overlay content (centered like your iOS screenshot)
             if (film.kind == Film.Kind.NEWS) {
                 FilmDetailNewsHeroOverlay(film = film)
             } else {
-                // video/article overlay with play button + metadata + title + synopsis
                 if (!playUrl.isNullOrBlank()) {
                     FilmDetailPlayHeroOverlay(film = film)
                 } else {
@@ -216,7 +307,6 @@ private fun DetailBody(film: Film) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        // News author byline
         if (film.isNews && !film.author?.displayName.isNullOrBlank()) {
             Text(
                 text = film.author.displayName,
@@ -238,7 +328,6 @@ private fun DetailBody(film: Film) {
     }
 }
 
-// Shouldn't really ever be used
 @Composable
 private fun FilmDetailTitleOnlyHeroOverlay(film: Film) {
     Box(
@@ -279,7 +368,6 @@ private fun Topic(film: Film) {
             horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
             verticalArrangement = Arrangement.Center
         ) {
-            // 1. Genre
             if (film.genre != null) {
                 Text(
                     text = film.genre.displayName?.uppercase().toString(),
@@ -288,14 +376,12 @@ private fun Topic(film: Film) {
                 )
             }
 
-            // 2. "ABOUT"
             Text(
                 text = "ABOUT",
                 style = textStyle,
                 color = secondaryColor
             )
 
-            // 3. Topic
             if (film.topic != null) {
                 Text(
                     text = film.topic.displayName?.uppercase().toString(),
@@ -304,14 +390,12 @@ private fun Topic(film: Film) {
                 )
             }
 
-            // 4. "IN"
             Text(
                 text = "IN",
                 style = textStyle,
                 color = secondaryColor
             )
 
-            // 5. Style
             if (film.style != null) {
                 Text(
                     text = film.style.displayName?.uppercase().toString(),
@@ -343,7 +427,6 @@ fun CreditsHeader(film: Film) {
         verticalArrangement = Arrangement.spacedBy(6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 1. Directed By
         film.filmmaker?.takeIf { it.isNotEmpty() }?.let { director ->
             Text(
                 text = "DIRECTED BY $director".decodeHtmlEntities().uppercase(),
@@ -352,7 +435,6 @@ fun CreditsHeader(film: Film) {
             )
         }
 
-        // 2. Produced By
         film.production?.takeIf { it.isNotEmpty() }?.let { producer ->
             Text(
                 text = "PRODUCED BY $producer".decodeHtmlEntities().uppercase(),
@@ -361,7 +443,6 @@ fun CreditsHeader(film: Film) {
             )
         }
 
-        // 3. Made In
         film.country?.displayName?.takeIf { it.isNotEmpty() }?.let { countryName ->
             Row {
                 Text(
@@ -379,33 +460,46 @@ fun CreditsHeader(film: Film) {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview(showBackground = true)
 @Composable
-private fun FilmDetailPreview() {
+private fun FilmDetailScreenPreview() {
     ShortOfTheWeekTheme {
-        FilmDetailScreenContent(
-            state = FilmDetailState(
-                filmId = 1,
-                film = Film(
+        SharedTransitionLayout {
+            AnimatedVisibility(visible = true) {
+                // Mock State
+                val sampleFilm = Film(
                     id = 1,
                     kind = Film.Kind.VIDEO,
                     title = "No Vacancy",
                     slug = "no-vacancy",
-                    synopsis = "A restless, beautifully disorienting swirl.",
-                    postDate = "2024-09-01",
-                    backgroundImageUrl = "https://www.shortoftheweek.com/wp-content/uploads/2024/09/NoVacancy_Thumb.jpg",
-                    thumbnailUrl = null,
+                    synopsis = "A restless mind drifts...",
+                    postDate = "2025-12-11",
+                    backgroundImageUrl = "https://picsum.photos/900/500",
+                    thumbnailUrl = "https://picsum.photos/900/500",
                     filmmaker = "Miguel Rodrick",
-                    production = null,
+                    genre = null,
+                    production = "Short of the Week",
                     durationMinutes = 12,
-                    playUrl = "https://www.shortoftheweek.com/",
+                    playUrl = "https://example.com",
                     textColorHex = "#FFFFFF",
-                    articleHtml = "<p>Preview</p>"
-                ),
-                viewDisplayMode = ViewDisplayMode.Content
-            ),
-            onRefresh = {},
-            onPlay = {}
-        )
+                    articleHtml = "<p>Preview Article</p>"
+                )
+
+                FilmDetailScreenContent(
+                    state = FilmDetailState(
+                        viewDisplayMode = ViewDisplayMode.Content,
+                        film = sampleFilm
+                    ),
+                    onRefresh = {},
+                    onPlay = {},
+                    cachedId = 1,
+                    cachedThumbnail = "https://picsum.photos/900/500",
+                    animatedVisibilityScope = this,
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    onBack = {}
+                )
+            }
+        }
     }
 }

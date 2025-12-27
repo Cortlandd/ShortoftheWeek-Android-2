@@ -23,6 +23,6 @@ sealed interface NewsAction {
 }
 
 sealed interface NewsEffect {
-    data class OpenFilmDetail(val filmId: Int) : NewsEffect
+    data class OpenFilmDetail(val film: Film) : NewsEffect
 }
 

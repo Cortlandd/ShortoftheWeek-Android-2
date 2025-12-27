@@ -2,20 +2,27 @@ package com.cortlandwalker.shortoftheweek.features.search
 
 import android.util.Log
 import com.cortlandwalker.ghettoxide.Reducer
+import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode.*
 import com.cortlandwalker.shortoftheweek.data.recent.RecentSearchesStore
 import com.cortlandwalker.shortoftheweek.features.search.SearchEffect.*
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@HiltViewModel
 class SearchReducer @Inject constructor(
     private val repo: FilmRepository,
     private val recentStore: RecentSearchesStore
-) : Reducer<SearchState, SearchAction, SearchEffect>() {
+) : ViewModelReducer<SearchState, SearchAction, SearchEffect>(SearchState()) {
+
+    init {
+        postAction(onLoadAction())
+    }
 
     override fun onLoadAction(): SearchAction = SearchAction.OnLoad
 

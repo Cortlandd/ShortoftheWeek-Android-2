@@ -1,5 +1,10 @@
 package com.cortlandwalker.shortoftheweek.features.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +39,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -54,8 +58,14 @@ import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SearchScreen(state: SearchState, reducer: SearchReducer) {
+fun SearchScreen(
+    state: SearchState,
+    reducer: SearchReducer,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
+) {
     SearchScreenContent(
         state = state,
         onQueryChanged = { reducer.postAction(SearchAction.OnQueryChanged(it)) },
@@ -64,11 +74,13 @@ fun SearchScreen(state: SearchState, reducer: SearchReducer) {
         onFilmClick = { reducer.postAction(SearchAction.OnFilmSelected(it)) },
         onRecentSearchClick = { reducer.postAction(SearchAction.OnRecentSearchClicked(it)) },
         onClearRecents = { reducer.postAction(SearchAction.OnClearRecentSearches) },
-        onLoadMore = { reducer.postAction(SearchAction.OnLoadMore) }
+        onLoadMore = { reducer.postAction(SearchAction.OnLoadMore) },
+        animatedVisibilityScope = animatedVisibilityScope,
+        sharedTransitionScope = sharedTransitionScope
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun SearchScreenContent(
     state: SearchState,
@@ -78,14 +90,20 @@ fun SearchScreenContent(
     onFilmClick: (Film) -> Unit,
     onRecentSearchClick: (String) -> Unit,
     onClearRecents: () -> Unit,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    sharedTransitionScope: SharedTransitionScope
 ) {
     PullToRefreshBox(
         isRefreshing = state.isRefreshing,
         onRefresh = onRefresh,
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF212121))
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -154,8 +172,11 @@ fun SearchScreenContent(
                             items(state.items, key = { it.id }) { film ->
                                 FilmCard(
                                     film = film,
-                                    sharedKey = "search-${film.id}",
-                                    onClick = { onFilmClick(film) }
+                                    // Ensure this key matches the one in FilmDetailScreen
+                                    sharedKey = "image-${film.id}",
+                                    onClick = { onFilmClick(film) },
+                                    animatedVisibilityScope = animatedVisibilityScope,
+                                    sharedTransitionScope = sharedTransitionScope
                                 )
                             }
 
@@ -185,7 +206,9 @@ fun SearchScreenContent(
 
                                     state.canLoadMore -> {
                                         Box(
-                                            modifier = Modifier.fillMaxWidth().height(44.dp),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(44.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Button(
@@ -274,63 +297,79 @@ private fun RecentSearchesSection(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = false)
 @Composable
 private fun SearchScreenPreviewEmpty() {
     ShortOfTheWeekTheme {
-        SearchScreenContent(
-            state = SearchState(
-                query = "",
-                hasSearched = false,
-                viewDisplayMode = ViewDisplayMode.Content,
-                recentSearches = listOf("no vacancy", "no vac"),
-                items = emptyList()
-            ),
-            onQueryChanged = {},
-            onSubmit = {},
-            onRefresh = {},
-            onFilmClick = {},
-            onRecentSearchClick = {},
-            onClearRecents = {},
-            onLoadMore = {}
-        )
+        SharedTransitionLayout {
+            // FIX: Use AnimatedVisibility to provide the correct scope
+            AnimatedVisibility(visible = true) {
+                SearchScreenContent(
+                    state = SearchState(
+                        query = "",
+                        hasSearched = false,
+                        viewDisplayMode = ViewDisplayMode.Content,
+                        recentSearches = listOf("no vacancy", "no vac"),
+                        items = emptyList()
+                    ),
+                    onQueryChanged = {},
+                    onSubmit = {},
+                    onRefresh = {},
+                    onFilmClick = {},
+                    onRecentSearchClick = {},
+                    onClearRecents = {},
+                    onLoadMore = {},
+                    animatedVisibilityScope = this,
+                    sharedTransitionScope = this@SharedTransitionLayout
+                )
+            }
+        }
     }
 }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = false)
 @Composable
 private fun SearchScreenPreview() {
     ShortOfTheWeekTheme {
-        SearchScreenContent(
-            state = SearchState(
-                query = "No Vacancy",
-                hasSearched = true,
-                viewDisplayMode = ViewDisplayMode.Content,
-                items = listOf(
-                    Film(
-                        id = 77,
-                        kind = Film.Kind.VIDEO,
-                        title = "Sample Film",
-                        slug = "sample-film",
-                        synopsis = "Preview synopsis",
-                        postDate = "2024-09-03",
-                        backgroundImageUrl = null,
-                        thumbnailUrl = null,
-                        filmmaker = "Bruh Man Walker",
-                        production = null,
-                        durationMinutes = 8,
-                        playUrl = "https://www.shortoftheweek.com/",
-                        textColorHex = "#FFFFFF",
-                        articleHtml = "<p>Preview</p>"
-                    )
+        SharedTransitionLayout {
+            AnimatedVisibility(visible = true) {
+                SearchScreenContent(
+                    state = SearchState(
+                        query = "No Vacancy",
+                        hasSearched = true,
+                        viewDisplayMode = ViewDisplayMode.Content,
+                        items = listOf(
+                            Film(
+                                id = 77,
+                                kind = Film.Kind.VIDEO,
+                                title = "Sample Film",
+                                slug = "sample-film",
+                                synopsis = "Preview synopsis",
+                                postDate = "2024-09-03",
+                                backgroundImageUrl = null,
+                                thumbnailUrl = null,
+                                filmmaker = "Bruh Man Walker",
+                                production = null,
+                                durationMinutes = 8,
+                                playUrl = "https://www.shortoftheweek.com/",
+                                textColorHex = "#FFFFFF",
+                                articleHtml = "<p>Preview</p>"
+                            )
+                        )
+                    ),
+                    onQueryChanged = {},
+                    onSubmit = {},
+                    onRefresh = {},
+                    onFilmClick = {},
+                    onRecentSearchClick = {},
+                    onClearRecents = {},
+                    onLoadMore = {},
+                    animatedVisibilityScope = this,
+                    sharedTransitionScope = this@SharedTransitionLayout
                 )
-            ),
-            onQueryChanged = {},
-            onSubmit = {},
-            onRefresh = {},
-            onFilmClick = {},
-            onRecentSearchClick = {},
-            onClearRecents = {},
-            onLoadMore = {}
-        )
+            }
+        }
     }
 }

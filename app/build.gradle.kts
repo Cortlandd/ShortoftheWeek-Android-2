@@ -114,9 +114,13 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.fragment)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // JSoup
     implementation("org.jsoup:jsoup:1.19.1")
+
+    // GSON
+    implementation("com.google.code.gson:gson:2.11.0")
 }
 
 ksp {
