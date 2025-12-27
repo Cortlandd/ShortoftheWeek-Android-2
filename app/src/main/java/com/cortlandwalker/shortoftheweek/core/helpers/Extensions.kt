@@ -1,5 +1,8 @@
 package com.cortlandwalker.shortoftheweek.core.helpers
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.ui.graphics.Color
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -7,6 +10,15 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.absoluteValue
+
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
 
 fun String?.toSotwDisplayDateOrNull(): String? {
     val raw = this?.trim().orEmpty()
@@ -83,4 +95,52 @@ fun Color.Companion.fromHex(hex: String): Color {
         blue = b.toFloat() / 255f,
         alpha = a.toFloat() / 255f
     )
+}
+
+// ---- String Helpers ----
+
+/**
+ * Cleans text but KEEPS <strong>, <b>, <em>, <i>, <u> and style="..." tags
+ * so the UI can parse them.
+ */
+fun String.preservingRichText(): String {
+    var s = this
+
+    // Convert <br> to newline
+    s = s.replace(Regex("(?i)<br\\s*/?>"), "\n")
+
+    // We want to remove all tags EXCEPT: strong, b, em, i, u, span
+    // Regex explanation: Matches <(?!/?(b|strong|i|em|u|span)...)>
+    val removeTagsRegex = Regex("<(?!/?(b|strong|i|em|u|span)\\b)[^>]+>", RegexOption.IGNORE_CASE)
+    s = s.replace(removeTagsRegex, "")
+
+    // Decode entities
+    return s.decodeHtmlEntities()
+        .replace("\r\n", "\n")
+        .replace("\r", "\n")
+        .replace(Regex("[ \\t]{2,}"), " ")
+        .replace(Regex(" *\n *"), "\n")
+        .trim()
+}
+
+/** Completely strips all tags (used for headings/captions) */
+fun String.strippingAllTags(): String {
+    return this.replace(Regex("<[^>]+>"), "")
+        .replace(Regex("(?i)<br\\s*/?>"), "\n")
+        .decodeHtmlEntities()
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
+
+fun String.decodeHtmlEntities(): String {
+    return this
+        .replace("&nbsp;", " ")
+        .replace("\u00A0", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&ndash;", "–")
+        .replace("&mdash;", "—")
 }

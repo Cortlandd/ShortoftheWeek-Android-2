@@ -86,6 +86,11 @@ dependencies {
     // Image loading with Glide
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 
+    // Video player
+    implementation("androidx.media3:media3-exoplayer:1.9.0")
+    implementation("androidx.media3:media3-ui:1.9.0")
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
+
     // Navigation
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.fragment)

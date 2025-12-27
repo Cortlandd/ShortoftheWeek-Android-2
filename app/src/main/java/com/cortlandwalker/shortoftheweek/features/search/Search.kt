@@ -32,6 +32,6 @@ sealed interface SearchAction {
 }
 
 sealed interface SearchEffect {
-    data class OpenFilmDetail(val filmId: Int) : SearchEffect
+    data class OpenFilmDetail(val film: Film) : SearchEffect
 }
 

@@ -30,6 +30,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,9 +50,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.cortlandwalker.shortoftheweek.R
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.core.helpers.article.ArticleBlocksView
 import com.cortlandwalker.shortoftheweek.core.helpers.article.ArticleParser
+import com.cortlandwalker.shortoftheweek.core.helpers.decodeHtmlEntities
 import com.cortlandwalker.shortoftheweek.core.helpers.fromHex
 import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.data.models.isNews
@@ -150,7 +154,9 @@ private fun HeroHeader(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
     ) {
         // Video revealed
         if (!playUrl.isNullOrBlank() && isPlaying && !LocalInspectionMode.current) {
-            VideoWebView(url = playUrl)
+            key(playUrl) {
+                FilmVideoEmbedView(url = playUrl)
+            }
         } else {
             // Thumbnail / background
             if (!imageUrl.isNullOrBlank()) {
@@ -163,28 +169,28 @@ private fun HeroHeader(film: Film, isPlaying: Boolean, onPlay: () -> Unit) {
             }
 
             // Gradient overlay like iOS
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(
-//                        Brush.verticalGradient(
-//                            colors = listOf(
-//                                Color.Black.copy(alpha = 0.05f),
-//                                Color.Black.copy(alpha = 0.45f),
-//                                Color.Black.copy(alpha = 0.85f),
-//                            )
-//                        )
-//                    )
-//            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.05f),
+                                Color.Black.copy(alpha = 0.45f),
+                                Color.Black.copy(alpha = 0.85f),
+                            )
+                        )
+                    )
+            )
 
             // Tap anywhere to play (only if video exists)
-//            if (!playUrl.isNullOrBlank()) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                        .clickable { onPlay() }
-//                )
-//            }
+            if (!playUrl.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { onPlay() }
+                )
+            }
 
             // Overlay content (centered like your iOS screenshot)
             if (film.kind == Film.Kind.NEWS) {
@@ -340,7 +346,7 @@ fun CreditsHeader(film: Film) {
         // 1. Directed By
         film.filmmaker?.takeIf { it.isNotEmpty() }?.let { director ->
             Text(
-                text = "DIRECTED BY $director".uppercase(),
+                text = "DIRECTED BY $director".decodeHtmlEntities().uppercase(),
                 style = textStyle,
                 color = creditColor
             )
@@ -349,7 +355,7 @@ fun CreditsHeader(film: Film) {
         // 2. Produced By
         film.production?.takeIf { it.isNotEmpty() }?.let { producer ->
             Text(
-                text = "PRODUCED BY $producer".uppercase(),
+                text = "PRODUCED BY $producer".decodeHtmlEntities().uppercase(),
                 style = textStyle,
                 color = creditColor
             )
@@ -371,28 +377,6 @@ fun CreditsHeader(film: Film) {
             }
         }
     }
-}
-
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-private fun VideoWebView(url: String) {
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { ctx ->
-            WebView(ctx).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                settings.mediaPlaybackRequiresUserGesture = false
-                setBackgroundColor(android.graphics.Color.BLACK)
-//
-//                webChromeClient = android.webkit.WebChromeClient()
-//                webViewClient = android.webkit.WebViewClient()
-            }
-        },
-        update = { webView ->
-            if (webView.url != url) webView.loadUrl(url)
-        }
-    )
 }
 
 @Preview(showBackground = true, backgroundColor = 0xFF000000)

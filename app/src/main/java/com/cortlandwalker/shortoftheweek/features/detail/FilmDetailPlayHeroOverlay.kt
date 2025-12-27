@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.cortlandwalker.shortoftheweek.core.helpers.decodeHtmlEntities
 import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.data.models.metadataLine
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
@@ -54,7 +55,7 @@ fun FilmDetailPlayHeroOverlay(film: Film) {
         val meta = film.metadataLine
         if (!meta.isNullOrBlank()) {
             Text(
-                text = meta.uppercase(),
+                text = meta.decodeHtmlEntities().uppercase(),
                 style = MaterialTheme.typography.labelLarge,
                 color = Color.White.copy(alpha = 0.95f),
                 maxLines = 2,
@@ -65,7 +66,7 @@ fun FilmDetailPlayHeroOverlay(film: Film) {
         }
 
         Text(
-            text = film.title.uppercase(),
+            text = film.title.decodeHtmlEntities().uppercase(),
             style = MaterialTheme.typography.headlineMedium,
             color = Color.White,
             maxLines = 3,

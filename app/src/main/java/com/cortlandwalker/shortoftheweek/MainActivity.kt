@@ -1,20 +1,11 @@
 package com.cortlandwalker.shortoftheweek
 
+import android.content.res.Configuration
+import android.util.Log
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,5 +21,19 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<BottomNavigationView>(R.id.bottom_nav)
             .setupWithNavController(navController)
+    }
+
+    // ADD THIS: Log to see if Activity survives
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d("VideoDebug", "MainActivity: Configuration Changed to ${newConfig.orientation}")
+        // We do NOT need to manually reload fragments here because
+        // android:configChanges="orientation|screenSize..." in Manifest handles it.
+    }
+
+    // ADD THIS: Log to see if Activity is dying
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("VideoDebug", "MainActivity: onDestroy")
     }
 }

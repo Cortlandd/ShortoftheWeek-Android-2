@@ -11,12 +11,15 @@ class FilmDetailReducer @Inject constructor(
     private val repo: FilmRepository
 ) : Reducer<FilmDetailState, FilmDetailAction, FilmDetailEffect>() {
 
-    override fun onLoadAction(): FilmDetailAction = FilmDetailAction.OnLoad(filmId = currentState.filmId)
+    override fun onLoadAction(): FilmDetailAction = FilmDetailAction.OnLoad(
+        filmId = currentState.filmId,
+        film = currentState.film
+    )
 
     override suspend fun process(action: FilmDetailAction) {
         when (action) {
             is FilmDetailAction.OnLoad -> {
-                state { it.copy(filmId = action.filmId, viewDisplayMode = ViewDisplayMode.Loading) }
+                state { it.copy(filmId = action.filmId, film = action.film, viewDisplayMode = ViewDisplayMode.Loading) }
                 loadFilm(forceRefresh = false, fromRefresh = false)
             }
             FilmDetailAction.OnRefresh -> loadFilm(forceRefresh = true, fromRefresh = true)
@@ -52,8 +55,9 @@ class FilmDetailReducer @Inject constructor(
 
     private suspend fun loadFilm(forceRefresh: Boolean, fromRefresh: Boolean) {
         val filmId = currentState.filmId
-        if (filmId <= 0) {
-            state { it.copy(viewDisplayMode = ViewDisplayMode.Error("Missing filmId"), isRefreshing = false) }
+        if (filmId <= 0 && currentState.film != null) {
+            state { it.copy(viewDisplayMode = ViewDisplayMode.Content, film = currentState.film) }
+            postAction(FilmDetailAction.Loaded(currentState.film, fromRefresh = fromRefresh))
             return
         }
 

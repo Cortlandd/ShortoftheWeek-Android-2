@@ -37,7 +37,9 @@ class SearchFragment : ReducerFragment<SearchState, SearchAction, SearchEffect, 
             is SearchEffect.OpenFilmDetail -> {
                 findNavController().navigate(
                     R.id.action_searchFragment_to_filmDetailFragment,
-                    bundleOf("filmId" to effect.filmId)
+                    bundleOf(
+                        "film" to effect.film
+                    )
                 )
             }
         }

@@ -15,8 +15,13 @@ import javax.inject.Inject
 class FilmDetailFragment : ReducerFragment<FilmDetailState, FilmDetailAction, FilmDetailEffect, FilmDetailReducer>() {
     private val args: FilmDetailFragmentArgs by navArgs()
 
-    override val initialState: FilmDetailState
-        get() = FilmDetailState(filmId = args.filmId)
+    override val initialState: FilmDetailState by lazy {
+        if (args.filmId > -1 && args.film == null) {
+            FilmDetailState(filmId = args.filmId, film = null)
+        } else {
+            FilmDetailState(filmId = -1, film = args.film)
+        }
+    }
 
     @Inject override lateinit var reducer: FilmDetailReducer
 

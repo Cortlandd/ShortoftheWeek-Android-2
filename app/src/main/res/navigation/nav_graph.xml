@@ -37,7 +37,14 @@
         android:label="Film Detail">
         <argument
             android:name="filmId"
-            app:argType="integer" />
+            app:argType="integer"
+            android:defaultValue="-1" />
+
+        <argument
+            android:name="film"
+            app:argType="com.cortlandwalker.shortoftheweek.data.models.Film"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
 </navigation>

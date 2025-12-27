@@ -1,5 +1,6 @@
 package com.cortlandwalker.shortoftheweek.data.models
 
+import android.os.Parcelable
 import androidx.room.util.copy
 import com.cortlandwalker.shortoftheweek.core.helpers.toSotwDisplayDateOrNull
 import com.cortlandwalker.shortoftheweek.networking.BoolOrArray
@@ -9,8 +10,10 @@ import com.cortlandwalker.shortoftheweek.networking.FilmItem
 import com.cortlandwalker.shortoftheweek.networking.FilmTerm
 import com.cortlandwalker.shortoftheweek.networking.FilmTermCollection
 import com.cortlandwalker.shortoftheweek.networking.StringOrStringArray
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
+@Parcelize
 @Serializable
 data class Film(
     val id: Int,
@@ -41,7 +44,7 @@ data class Film(
     val genre: FilmTerm? = null,
     val style: FilmTerm? = null,
     val subscriptions: Boolean? = null
-) {
+): Parcelable {
     enum class Kind { VIDEO, ARTICLE, NEWS, UNKNOWN }
 
     companion object {

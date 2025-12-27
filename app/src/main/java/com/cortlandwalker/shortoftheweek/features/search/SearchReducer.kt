@@ -52,7 +52,7 @@ class SearchReducer @Inject constructor(
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
-            is SearchAction.OnFilmSelected -> emit(OpenFilmDetail(action.film.id))
+            is SearchAction.OnFilmSelected -> emit(OpenFilmDetail(film = action.film))
 
             // Handle Recent Searches
             SearchAction.OnClearRecentSearches -> {
