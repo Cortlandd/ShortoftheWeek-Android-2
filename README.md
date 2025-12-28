@@ -1,4 +1,4 @@
-# ![Short of the Week](app/src/main/res/drawable/sotw_full_logo.png)
+# ![Short of the Week](app/src/main/res/drawable/sotw_full_logo_white.png)
 
 _Disclaimer: This is an unofficial, fan-made project and is not affiliated with Short of the Week._
 
