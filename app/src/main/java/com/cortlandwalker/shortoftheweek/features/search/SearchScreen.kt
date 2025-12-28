@@ -55,6 +55,7 @@ import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
+import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
@@ -155,14 +156,15 @@ fun SearchScreenContent(
                 }
             }
 
+            RecentSearchesSection(
+                recent = state.recentSearches,
+                onClick = onRecentSearchClick,
+                onClear = onClearRecents
+            )
+
             when (val mode = state.viewDisplayMode) {
                 ViewDisplayMode.Content -> {
                     if (!state.hasSearched) {
-                        RecentSearchesSection(
-                            recent = state.recentSearches,
-                            onClick = onRecentSearchClick,
-                            onClear = onClearRecents
-                        )
                         CenterMessage("Search for films or news.")
                     } else {
                         LazyColumn(
@@ -235,7 +237,7 @@ fun SearchScreenContent(
                         }
                     }
                 }
-                ViewDisplayMode.Empty -> CenterMessage("No results")
+                ViewDisplayMode.Empty -> SotwEmptyState()
                 is ViewDisplayMode.Error -> CenterMessage(mode.message)
                 ViewDisplayMode.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     SotwCustomLoader()
@@ -311,6 +313,36 @@ private fun SearchScreenPreviewEmpty() {
                         hasSearched = false,
                         viewDisplayMode = ViewDisplayMode.Content,
                         recentSearches = listOf("no vacancy", "no vac"),
+                        items = emptyList()
+                    ),
+                    onQueryChanged = {},
+                    onSubmit = {},
+                    onRefresh = {},
+                    onFilmClick = {},
+                    onRecentSearchClick = {},
+                    onClearRecents = {},
+                    onLoadMore = {},
+                    animatedVisibilityScope = this,
+                    sharedTransitionScope = this@SharedTransitionLayout
+                )
+            }
+        }
+    }
+}
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview(showBackground = false)
+@Composable
+private fun SearchScreenPreviewEmptyResult() {
+    ShortOfTheWeekTheme {
+        SharedTransitionLayout {
+            // FIX: Use AnimatedVisibility to provide the correct scope
+            AnimatedVisibility(visible = true) {
+                SearchScreenContent(
+                    state = SearchState(
+                        query = "",
+                        hasSearched = false,
+                        viewDisplayMode = ViewDisplayMode.Empty,
+                        recentSearches = listOf("asdfgy"),
                         items = emptyList()
                     ),
                     onQueryChanged = {},

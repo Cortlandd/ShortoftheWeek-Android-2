@@ -40,6 +40,7 @@ import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
+import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -147,7 +148,7 @@ fun NewsScreenContent(
                     }
                 }
 
-                ViewDisplayMode.Empty -> CenterMessage("No results")
+                ViewDisplayMode.Empty -> SotwEmptyState()
 
                 is ViewDisplayMode.Error -> CenterMessage(mode.message)
 

@@ -58,6 +58,7 @@ import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.data.models.isNews
 import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
+import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
@@ -165,7 +166,7 @@ fun FilmDetailScreenContent(
                 is ViewDisplayMode.Error -> CenterMessage(mode.message)
 
                 ViewDisplayMode.Empty -> {
-                    CenterMessage("Not found")
+                    SotwEmptyState()
                 }
 
                 ViewDisplayMode.Content -> {
