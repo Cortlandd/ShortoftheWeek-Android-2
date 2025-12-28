@@ -7,7 +7,7 @@ data class FilmDetailState(
     val filmId: Int = -1,
     val film: Film? = null,
     val isPlaying: Boolean = false,
-    val viewDisplayMode: ViewDisplayMode = ViewDisplayMode.Loading,
+    val viewDisplayMode: ViewDisplayMode = ViewDisplayMode.Content,
     val isRefreshing: Boolean = false
 )
 

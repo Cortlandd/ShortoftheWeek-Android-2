@@ -71,17 +71,7 @@ class FilmDetailReducer @Inject constructor(
     }
 
     private suspend fun load(filmId: Int, forceRefresh: Boolean = false) {
-        // FIX: Don't show "Loading" spinner if we already have the film data visible.
-        // We only show loading if we are starting from scratch.
-        val hasData = currentState.film != null && currentState.viewDisplayMode == ViewDisplayMode.Content
-
-        if (!hasData) {
-            state { it.copy(viewDisplayMode = ViewDisplayMode.Loading) }
-        } else {
-            // If we have data, just ensure refreshing flag is set if needed,
-            // but keep the user on Content view.
-            state { it.copy(isRefreshing = true) }
-        }
+        state { it.copy(isRefreshing = true) }
 
         try {
             // We still want to fetch the "full" film (with article HTML)
@@ -99,17 +89,18 @@ class FilmDetailReducer @Inject constructor(
                     )
                 }
             } else {
-                // If DB miss and Repo returns null (maybe network failed?),
-                // ONLY show error if we don't have the initial data shown.
-                if (!hasData) {
+                // If network fails but we have cached data, just stop refreshing
+                if (currentState.film == null) {
                     state { it.copy(viewDisplayMode = ViewDisplayMode.Empty) }
+                } else {
+                    state { it.copy(isRefreshing = false) }
                 }
-                // If we have data (from Search), we just silently fail the background refresh
-                // effectively keeping the "Lite" version visible.
             }
         } catch (t: Throwable) {
-            if (!hasData) {
+            if (currentState.film == null) {
                 state { it.copy(viewDisplayMode = ViewDisplayMode.Error(t.message ?: "Error")) }
+            } else {
+                state { it.copy(isRefreshing = false) }
             }
         }
     }

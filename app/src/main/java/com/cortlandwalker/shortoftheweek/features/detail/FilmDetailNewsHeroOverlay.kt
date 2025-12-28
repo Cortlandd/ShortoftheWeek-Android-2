@@ -3,6 +3,7 @@ package com.cortlandwalker.shortoftheweek.features.detail
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +39,8 @@ fun FilmDetailNewsHeroOverlay(film: Film) {
                 color = Color.White.copy(alpha = 0.95f),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                fontFamily = DomDiagonal
+                fontFamily = DomDiagonal,
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(10.dp))
         }
@@ -51,7 +53,9 @@ fun FilmDetailNewsHeroOverlay(film: Film) {
             overflow = TextOverflow.Ellipsis,
             fontFamily = DomDiagonal,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 10.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp)
         )
 
         film.author?.displayName?.let {
@@ -61,7 +65,8 @@ fun FilmDetailNewsHeroOverlay(film: Film) {
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.95f),
                 overflow = TextOverflow.Ellipsis,
-                fontFamily = FuturaBold
+                fontFamily = FuturaBold,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

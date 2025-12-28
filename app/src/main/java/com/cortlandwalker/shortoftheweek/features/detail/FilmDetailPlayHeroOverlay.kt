@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,7 +39,7 @@ fun FilmDetailPlayHeroOverlay(film: Film) {
         // Play circle (centered)
         Box(
             modifier = Modifier
-                .size(72.dp)
+                .size(56.dp)
                 .background(Color.Black.copy(alpha = 0.55f), shape = androidx.compose.foundation.shape.CircleShape),
             contentAlignment = Alignment.Center
         ) {
@@ -56,33 +57,39 @@ fun FilmDetailPlayHeroOverlay(film: Film) {
         if (!meta.isNullOrBlank()) {
             Text(
                 text = meta.decodeHtmlEntities().uppercase(),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.White.copy(alpha = 0.95f),
+                color = Color.White,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                fontFamily = DomDiagonal
+                fontFamily = DomDiagonal,
+                modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(10.dp))
         }
 
         Text(
             text = film.title.decodeHtmlEntities().uppercase(),
+            textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium,
             color = Color.White,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
-            fontFamily = DomDiagonal
+            fontFamily = DomDiagonal,
+            modifier = Modifier.fillMaxWidth()
         )
 
         film.synopsis?.takeIf { it.isNotBlank() }?.let { synopsis ->
             Spacer(Modifier.height(10.dp))
             Text(
                 text = synopsis,
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.95f),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                fontFamily = Futura
+                fontFamily = Futura,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

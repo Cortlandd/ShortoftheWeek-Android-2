@@ -137,12 +137,7 @@ fun FilmListContent(
             ViewDisplayMode.Empty -> SotwEmptyState()
             is ViewDisplayMode.Error -> SotwErrorState(message = viewDisplayMode.message)
             ViewDisplayMode.Loading -> {
-                Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    SotwCustomLoader()
-                }
+
             }
         }
     }

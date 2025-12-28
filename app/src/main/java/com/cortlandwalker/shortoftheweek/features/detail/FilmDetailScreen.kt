@@ -140,71 +140,40 @@ fun FilmDetailScreenContent(
                 .padding(paddingValues)
                 .background(Color.Black)
         ) {
+            val displayFilm = state.film ?: Film(
+                id = cachedId,
+                kind = Film.Kind.VIDEO,
+                title = "",
+                slug = "",
+                synopsis = "",
+                postDate = "",
+                backgroundImageUrl = cachedThumbnail,
+                thumbnailUrl = cachedThumbnail,
+                filmmaker = null,
+                production = null,
+                durationMinutes = null,
+                playUrl = null,
+                playLinkTarget = null,
+                textColorHex = "#FFFFFF",
+                twitterText = null,
+                articleHtml = "",
+                labels = emptyList(),
+                subscriptions = false
+            )
+
             when (val mode = state.viewDisplayMode) {
-                ViewDisplayMode.Loading -> {
-                    // RENDER HERO IMMEDIATELY so transition has a target
-                    Column(Modifier.fillMaxSize()) {
-                        // Create a dummy/partial film object for the header
-                        val partialFilm = state.film ?: Film(
-                            id = cachedId,
-                            // Provide sensible defaults for required fields to satisfy the constructor
-                            kind = Film.Kind.VIDEO,
-                            title = "",
-                            slug = "",
-                            synopsis = "",
-                            postDate = "",
-                            backgroundImageUrl = cachedThumbnail,
-                            thumbnailUrl = cachedThumbnail,
-                            filmmaker = null,
-                            production = null,
-                            durationMinutes = null,
-                            playUrl = null,
-                            playLinkTarget = null,
-                            textColorHex = "#FFFFFF",
-                            twitterText = null,
-                            articleHtml = "",
-                            labels = emptyList(),
-                            subscriptions = false
-                        )
-
-                        HeroHeader(
-                            film = partialFilm,
-                            isPlaying = false,
-                            onPlay = {},
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            sharedTransitionScope = sharedTransitionScope
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            SotwCustomLoader()
-                        }
-                    }
-                }
-
                 is ViewDisplayMode.Error -> SotwErrorState(message = mode.message)
 
-                ViewDisplayMode.Empty -> {
-                    SotwEmptyState()
-                }
+                ViewDisplayMode.Empty -> SotwEmptyState()
 
-                ViewDisplayMode.Content -> {
-                    val film = state.film
-                    if (film == null) {
-                        CenterMessage("Not found")
-                    } else {
-                        FilmDetailBody(
-                            film = film,
-                            isPlaying = state.isPlaying,
-                            onPlay = onPlay,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                            sharedTransitionScope = sharedTransitionScope
-                        )
-                    }
+                else -> {
+                    FilmDetailBody(
+                        film = displayFilm,
+                        isPlaying = state.isPlaying,
+                        onPlay = onPlay,
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        sharedTransitionScope = sharedTransitionScope
+                    )
                 }
             }
         }
@@ -263,7 +232,10 @@ private fun HeroHeader(
     ) {
         if (!playUrl.isNullOrBlank() && isPlaying && !LocalInspectionMode.current) {
             key(playUrl) {
-                FilmVideoEmbedView(url = playUrl)
+                FilmVideoEmbedView(
+                    url = playUrl,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         } else {
             if (!imageUrl.isNullOrBlank()) {
