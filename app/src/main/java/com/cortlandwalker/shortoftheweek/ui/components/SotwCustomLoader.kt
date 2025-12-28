@@ -46,7 +46,7 @@ fun SotwCustomLoader(
     blockLift: Dp = 0.dp
 ) {
     val isDark = isSystemInDarkTheme()
-    val logoRes = if (isDark) R.drawable.sotw_full_logo_white_copy else R.drawable.sotw_full_logo
+    val logoRes = if (isDark) R.drawable.sotw_full_logo_white else R.drawable.sotw_full_logo
     // Gray ring color
     val ringStrokeColor = if (isDark) Color.White else Color.LightGray
 
