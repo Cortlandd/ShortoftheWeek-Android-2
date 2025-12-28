@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
@@ -57,7 +58,8 @@ fun FilmVideoEmbedView(url: String, modifier: Modifier = Modifier) {
         when (val provider = embed?.provider) {
             is VideoProvider.YouTube -> {
                 YouTubePlayerCompose(
-                    videoId = provider.id
+                    videoId = provider.id,
+                    modifier = modifier
                 )
             }
 
@@ -93,7 +95,6 @@ fun VimeoEmbedWebView(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    // Helper to unwrap ContextWrappers (like Hilt) to get the raw Activity
     val activity = remember(context) { context.findActivity() }
 
     // State for the fullscreen overlay view provided by the WebView
@@ -120,7 +121,6 @@ fun VimeoEmbedWebView(
     }
 
     // 2. Set the WebChromeClient to handle "Enter Fullscreen" events from the iframe.
-    // Done in a DisposableEffect to capture state setters correctly.
     DisposableEffect(webView) {
         webView.webChromeClient = object : WebChromeClient() {
             override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
@@ -188,8 +188,30 @@ fun VimeoEmbedWebView(
           <head>
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <style>
-              html, body { margin:0; padding:0; height:100%; background:black; overflow:hidden; }
-              iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+              html, body { 
+                margin:0; 
+                padding:0; 
+                height:100%; 
+                background:black; 
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow:hidden; 
+              }
+              .video-container {
+                position: relative;
+                width: 100%;
+                padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+                height: 0;
+              }
+              iframe { 
+                position:absolute; 
+                top:0; 
+                left:0; 
+                width:100%; 
+                height:100%; 
+                border:0; 
+              }
             </style>
           </head>
           <body>
@@ -235,7 +257,7 @@ fun VimeoEmbedWebView(
  * @param videoId The YouTube Video ID.
  */
 @Composable
-private fun YouTubePlayerCompose(videoId: String) {
+private fun YouTubePlayerCompose(videoId: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = remember(context) { context.findActivity() }
@@ -286,15 +308,21 @@ private fun YouTubePlayerCompose(videoId: String) {
     }
 
     AndroidView(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+        modifier = modifier
+            .fillMaxSize(),
         factory = {
-            YouTubePlayerView(context).apply {
+            val container = FrameLayout(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                setBackgroundColor(android.graphics.Color.BLACK)
+            }
+
+            val player = YouTubePlayerView(context).apply {
                 lifecycleOwner.lifecycle.addObserver(this)
                 enableAutomaticInitialization = false
 
-                // Manually build options to enable the fullscreen button in the iFrame
                 val options = IFramePlayerOptions.Builder(context)
                     .controls(1)
                     .fullscreen(1)
@@ -320,12 +348,24 @@ private fun YouTubePlayerCompose(videoId: String) {
                     }
                 })
             }
+
+            val params = FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            ).apply {
+                gravity = Gravity.CENTER
+            }
+            container.addView(player, params)
+
+            container
         },
-        update = { view ->
-            val currentVid = view.tag as? String
+        update = { container ->
+            val player = (container as FrameLayout).getChildAt(0) as YouTubePlayerView
+
+            val currentVid = container.tag as? String
             if (currentVid != videoId) {
-                view.tag = videoId
-                view.getYouTubePlayerWhenReady(object : YouTubePlayerCallback {
+                container.tag = videoId
+                player.getYouTubePlayerWhenReady(object : YouTubePlayerCallback {
                     override fun onYouTubePlayer(youTubePlayer: YouTubePlayer) {
                         youTubePlayer.cueVideo(videoId, 0f)
                     }
