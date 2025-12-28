@@ -24,7 +24,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -82,7 +86,8 @@ fun FilmDetailScreen(
         cachedId = cachedId,
         cachedThumbnail = cachedThumbnail,
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        onBookmarkToggle = { reducer.postAction(FilmDetailAction.OnBookmarkToggle) }
     )
 }
 
@@ -93,6 +98,7 @@ fun FilmDetailScreenContent(
     onRefresh: () -> Unit,
     onPlay: () -> Unit,
     onBack: () -> Unit,
+    onBookmarkToggle: () -> Unit,
     cachedId: Int,
     cachedThumbnail: String?,
     animatedVisibilityScope: AnimatedVisibilityScope,
@@ -101,12 +107,28 @@ fun FilmDetailScreenContent(
     Scaffold(
         containerColor = Color.Black,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onBack,
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ) {
-                Icon(imageVector = Icons.Outlined.Close, contentDescription = "Back")
+            Column {
+                FloatingActionButton(
+                    onClick = onBookmarkToggle,
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    val isBookmarked = state.film?.isBookmarked == true
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Save Film",
+                        tint = if (isBookmarked) Color.Red else Color.Black
+                    )
+                }
+
+                FloatingActionButton(
+                    onClick = onBack,
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                ) {
+                    Icon(imageVector = Icons.Outlined.Close, contentDescription = "Back")
+                }
             }
         }
     ) { paddingValues ->
@@ -485,7 +507,8 @@ private fun FilmDetailScreenPreview() {
                     durationMinutes = 12,
                     playUrl = "https://example.com",
                     textColorHex = "#FFFFFF",
-                    articleHtml = "<p>Preview Article</p>"
+                    articleHtml = "<p>Preview Article</p>",
+                    isBookmarked = false,
                 )
 
                 FilmDetailScreenContent(
@@ -499,7 +522,8 @@ private fun FilmDetailScreenPreview() {
                     cachedThumbnail = "https://picsum.photos/900/500",
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBack = {}
+                    onBack = {},
+                    onBookmarkToggle = {}
                 )
             }
         }

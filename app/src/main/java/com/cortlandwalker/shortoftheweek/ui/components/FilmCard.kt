@@ -1,5 +1,6 @@
 package com.cortlandwalker.shortoftheweek.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -7,8 +8,14 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,7 +54,8 @@ fun FilmCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    onBookmarkClick: () -> Unit,
 ) {
     val imageUrl = remember(film) {
         if (film.kind == Film.Kind.NEWS) {
@@ -141,6 +149,22 @@ fun FilmCard(
                         }
                     }
                 }
+
+                IconButton(
+                    onClick = onBookmarkClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        // Add circular background for visibility against any image/black bg
+                        .background(Color.Black.copy(alpha = 0.4f), shape = CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (film.isBookmarked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = "Bookmark",
+                        // Red if bookmarked, White outline if not
+                        tint = if (film.isBookmarked) Color.Red else Color.White
+                    )
+                }
             }
         }
     }
@@ -187,31 +211,34 @@ private fun FilmCardHeroPreview() {
     MaterialTheme(colorScheme = darkColorScheme(background = Color.Black, surface = Color.Black)) {
         Surface(color = Color.Black) {
             SharedTransitionLayout {
-                FilmCard(
-                    film = Film(
-                        id = 1,
-                        kind = Film.Kind.VIDEO,
-                        title = "No Vacancy",
-                        slug = "no-vacancy",
-                        synopsis = "A restless mind drifts between thoughts...",
-                        postDate = "2025-12-11",
-                        backgroundImageUrl = "https://picsum.photos/900/500",
-                        thumbnailUrl = "https://picsum.photos/900/500",
-                        filmmaker = "Miguel Rodrick",
-                        genre = FilmTerm(displayName = "Animation"),
-                        production = "Short of the Week",
-                        durationMinutes = 12,
-                        playUrl = "https://example.com",
-                        textColorHex = "#FFFFFF",
-                        articleHtml = "<p>Preview</p>",
-                        subscriptions = true
-                    ),
-                    sharedKey = "home-hero-1",
-                    onClick = {},
-                    // PASS SCOPES FROM LAYOUT
-                    animatedVisibilityScope = this as AnimatedVisibilityScope,
-                    sharedTransitionScope = this
-                )
+                AnimatedVisibility(visible = true) {
+                    FilmCard(
+                        film = Film(
+                            id = 1,
+                            kind = Film.Kind.VIDEO,
+                            title = "No Vacancy",
+                            slug = "no-vacancy",
+                            synopsis = "A restless mind drifts between thoughts...",
+                            postDate = "2025-12-11",
+                            backgroundImageUrl = "https://picsum.photos/900/500",
+                            thumbnailUrl = "https://picsum.photos/900/500",
+                            filmmaker = "Miguel Rodrick",
+                            genre = FilmTerm(displayName = "Animation"),
+                            production = "Short of the Week",
+                            durationMinutes = 12,
+                            playUrl = "https://example.com",
+                            textColorHex = "#FFFFFF",
+                            articleHtml = "<p>Preview</p>",
+                            subscriptions = true,
+                            isBookmarked = true
+                        ),
+                        sharedKey = "home-hero-1",
+                        onClick = {},
+                        animatedVisibilityScope = this,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        onBookmarkClick = {}
+                    )
+                }
             }
         }
     }
@@ -224,28 +251,31 @@ private fun FilmCardHeroPreviewNews() {
     MaterialTheme(colorScheme = darkColorScheme(background = Color.Black, surface = Color.Black)) {
         Surface(color = Color.Black) {
             SharedTransitionLayout {
-                FilmCard(
-                    film = Film(
-                        id = 10,
-                        kind = Film.Kind.NEWS,
-                        title = "Festival Roundup",
-                        slug = "festival-roundup",
-                        synopsis = "Highlights from this week.",
-                        postDate = "2024-09-05",
-                        backgroundImageUrl = null,
-                        thumbnailUrl = null,
-                        filmmaker = null,
-                        production = null,
-                        durationMinutes = null,
-                        playUrl = null,
-                        textColorHex = "#FFFFFF",
-                        articleHtml = "<p>Preview</p>"
-                    ),
-                    sharedKey = "home-hero-1",
-                    onClick = {},
-                    animatedVisibilityScope = this as AnimatedVisibilityScope,
-                    sharedTransitionScope = this
-                )
+                AnimatedVisibility(visible = true) {
+                    FilmCard(
+                        film = Film(
+                            id = 10,
+                            kind = Film.Kind.NEWS,
+                            title = "Festival Roundup",
+                            slug = "festival-roundup",
+                            synopsis = "Highlights from this week.",
+                            postDate = "2024-09-05",
+                            backgroundImageUrl = "https://picsum.photos/900/500",
+                            thumbnailUrl = "https://picsum.photos/900/500",
+                            filmmaker = null,
+                            production = null,
+                            durationMinutes = null,
+                            playUrl = null,
+                            textColorHex = "#FFFFFF",
+                            articleHtml = "<p>Preview</p>"
+                        ),
+                        sharedKey = "home-hero-1",
+                        onClick = {},
+                        animatedVisibilityScope = this,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        onBookmarkClick = {}
+                    )
+                }
             }
         }
     }

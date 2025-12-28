@@ -3,7 +3,10 @@ package com.cortlandwalker.shortoftheweek.features.search
 import android.util.Log
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
+import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode.*
+import com.cortlandwalker.shortoftheweek.core.helpers.updateBookmarkState
 import com.cortlandwalker.shortoftheweek.data.recent.RecentSearchesStore
+import com.cortlandwalker.shortoftheweek.features.search.SearchAction.*
 import com.cortlandwalker.shortoftheweek.features.search.SearchEffect.*
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +32,7 @@ class SearchReducer @Inject constructor(
             SearchAction.OnLoad -> {
                 scope.launch {
                     recentStore.recentSearchesFlow().collect { recentSearches ->
-                        postAction(SearchAction.OnRecentSearchesLoaded(recentSearches))
+                        postAction(OnRecentSearchesLoaded(recentSearches))
                     }
                 }
             }
@@ -53,7 +56,7 @@ class SearchReducer @Inject constructor(
             }
             is SearchAction.Failed -> {
                 state { s ->
-                    val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else ViewDisplayMode.Error(action.message)
+                    val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else Error(action.message)
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
@@ -64,11 +67,18 @@ class SearchReducer @Inject constructor(
                 recentStore.clear()
             }
             is SearchAction.OnRecentSearchClicked -> {
-                postAction(SearchAction.OnQueryChanged(action.query))
+                postAction(OnQueryChanged(action.query))
             }
             is SearchAction.OnRecentSearchesLoaded -> {
                 state {
                     it.copy(recentSearches = action.items)
+                }
+            }
+
+            is SearchAction.OnBookmarkToggle -> {
+                repo.toggleBookmark(action.film)
+                state { s ->
+                    s.copy(items = s.items.updateBookmarkState(action.film.id))
                 }
             }
         }

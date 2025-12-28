@@ -1,6 +1,8 @@
 package com.cortlandwalker.shortoftheweek.networking.repository
 
 import android.util.Log
+import com.cortlandwalker.shortoftheweek.data.cache.BookmarkDao
+import com.cortlandwalker.shortoftheweek.data.cache.BookmarkEntity
 import com.cortlandwalker.shortoftheweek.data.cache.FeedCacheDao
 import com.cortlandwalker.shortoftheweek.data.cache.FeedCacheEntity
 import com.cortlandwalker.shortoftheweek.data.cache.FilmDao
@@ -9,6 +11,8 @@ import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.data.models.normalized
 import com.cortlandwalker.shortoftheweek.networking.FilmItem
 import com.cortlandwalker.shortoftheweek.networking.SotwApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -31,6 +35,7 @@ class FilmRepository @Inject constructor(
     private val api: SotwApi,
     private val feedDao: FeedCacheDao,
     private val filmDao: FilmDao,
+    private val bookmarkDao: BookmarkDao,
     private val json: Json
 ) {
     private val ttlMs: Long = 60L * 60L * 1000L
@@ -45,45 +50,111 @@ class FilmRepository @Inject constructor(
     private fun ttlLeftMs(fetchedAtMs: Long): Long = ttlMs - ageMs(fetchedAtMs)
 
     suspend fun getFilm(id: Int): Film? {
-        memoryFilms[id]?.let {
-            Log.d(tag, "getFilm(id=$id) MEMORY_HIT")
-            return it
+        // 1. Try Memory or Disk
+        var film = memoryFilms[id]
+        if (film == null) {
+            val entity = filmDao.get(id)
+            if (entity != null) {
+                film = runCatching { json.decodeFromString<Film>(entity.filmJson) }.getOrNull()
+            }
         }
 
-        val entity = filmDao.get(id)
-        if (entity == null) {
-            Log.d(tag, "getFilm(id=$id) DB_MISS")
-            return null
+        // 2. If found, ALWAYS ensure bookmark state is accurate
+        if (film != null) {
+            val isBookmarked = bookmarkDao.isBookmarked(id)
+            // Only copy if necessary to save allocation
+            val finalFilm = if (film.isBookmarked != isBookmarked) {
+                film.copy(isBookmarked = isBookmarked)
+            } else {
+                film
+            }
+            // Update memory with the correct version
+            memoryFilms[id] = finalFilm
+            return finalFilm
         }
 
-        val film = runCatching { json.decodeFromString<Film>(entity.filmJson) }.getOrNull()
-        return film?.also {
-            memoryFilms[id] = it
-            Log.d(
-                tag,
-                "getFilm(id=$id) DB_HIT ageMs=${ageMs(entity.fetchedAtMs)} ttlLeftMs=${ttlLeftMs(entity.fetchedAtMs)}"
-            )
-        }
+        return null
     }
 
     /** Backwards-compatible name used by reducers. */
     suspend fun getCachedFilm(id: Int): Film? = getFilm(id)
 
-    suspend fun mixed(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> =
-        getFeed(key = "mixed:$page:$limit", forceRefresh = forceRefresh, trimPrefix = null) {
+    suspend fun mixed(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> {
+        val raw = getFeed(key = "mixed:$page:$limit", forceRefresh = forceRefresh, trimPrefix = null) {
             api.mixed(page = page, limit = limit).data
         }
+        return hydrateBookmarks(raw)
+    }
 
-    suspend fun news(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> =
-        getFeed(key = "news:$page:$limit", forceRefresh = forceRefresh, trimPrefix = null) {
+    suspend fun news(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> {
+        val raw = getFeed(key = "news:$page:$limit", forceRefresh = forceRefresh, trimPrefix = null) {
             api.news(page = page, limit = limit).data
         }
+        return hydrateBookmarks(raw)
+    }
 
     suspend fun search(q: String, page: Int, limit: Int = 10): List<Film> {
-        val q = URLEncoder.encode(q.trim(), "UTF-8")
-        return api.search(query = q, page = page, limit = limit)
+        val qEnc = URLEncoder.encode(q.trim(), "UTF-8")
+        val raw = api.search(query = qEnc, page = page, limit = limit)
             .data
             .map(Film.Companion::from)
+        return hydrateBookmarks(raw)
+    }
+
+    /**
+     * Synchronizes a list of [Film] objects with the local bookmark database.
+     *
+     * This function fetches all currently bookmarked film IDs from the local Room database
+     * and efficiently maps the [Film.isBookmarked] property for each item in the provided list.
+     * This ensures that lists coming from the network (which default to isBookmarked=false)
+     * correctly reflect the user's local saved state.
+     *
+     * @param films The list of films (e.g., from a feed or search result) to update.
+     * @return A new list of films where [Film.isBookmarked] is true if the film exists in the local DB.
+     */
+    private suspend fun hydrateBookmarks(films: List<Film>): List<Film> {
+        val bookmarkedIds = bookmarkDao.getBookmarkedIds().toSet()
+        return films.map { film ->
+            if (bookmarkedIds.contains(film.id)) film.copy(isBookmarked = true) else film
+        }
+    }
+
+    fun getBookmarkedFilmsFlow(): Flow<List<Film>> {
+        return bookmarkDao.getAllBookmarksFlow()
+            .map { entities ->
+                entities.mapNotNull { entity ->
+                    runCatching {
+                        json.decodeFromString<Film>(entity.filmJson).copy(isBookmarked = true)
+                    }.getOrNull()
+                }
+            }
+    }
+
+    suspend fun toggleBookmark(film: Film) {
+        val isCurrentlyBookmarked = bookmarkDao.isBookmarked(film.id)
+
+        if (isCurrentlyBookmarked) {
+            bookmarkDao.delete(film.id)
+            // Update memory cache to reflect removal
+            memoryFilms[film.id] = film.copy(isBookmarked = false)
+        } else {
+            val entity = BookmarkEntity(
+                filmId = film.id,
+                addedAtMs = System.currentTimeMillis(),
+                filmJson = json.encodeToString(film.copy(isBookmarked = true))
+            )
+            bookmarkDao.insert(entity)
+            // Update memory cache
+            memoryFilms[film.id] = film.copy(isBookmarked = true)
+        }
+    }
+
+    suspend fun getBookmarkedFilms(): List<Film> {
+        return bookmarkDao.getAllBookmarks().mapNotNull { entity ->
+            runCatching {
+                json.decodeFromString<Film>(entity.filmJson).copy(isBookmarked = true)
+            }.getOrNull()
+        }
     }
 
     private suspend fun getFeed(

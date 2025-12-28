@@ -7,17 +7,14 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,9 +24,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -37,15 +32,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,10 +43,7 @@ import androidx.compose.ui.unit.sp
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
-import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
-import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
-import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
-import com.cortlandwalker.shortoftheweek.ui.components.SotwErrorState
+import com.cortlandwalker.shortoftheweek.ui.components.FilmListContent
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
@@ -77,12 +64,13 @@ fun SearchScreen(
         onRecentSearchClick = { reducer.postAction(SearchAction.OnRecentSearchClicked(it)) },
         onClearRecents = { reducer.postAction(SearchAction.OnClearRecentSearches) },
         onLoadMore = { reducer.postAction(SearchAction.OnLoadMore) },
+        onBookmarkToggle = { reducer.postAction(SearchAction.OnBookmarkToggle(it)) },
         animatedVisibilityScope = animatedVisibilityScope,
         sharedTransitionScope = sharedTransitionScope
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SearchScreenContent(
     state: SearchState,
@@ -93,157 +81,94 @@ fun SearchScreenContent(
     onRecentSearchClick: (String) -> Unit,
     onClearRecents: () -> Unit,
     onLoadMore: () -> Unit,
+    onBookmarkToggle: (Film) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
     sharedTransitionScope: SharedTransitionScope
 ) {
-    PullToRefreshBox(
-        isRefreshing = state.isRefreshing,
-        onRefresh = onRefresh,
-        modifier = Modifier.fillMaxSize()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF212121))
     ) {
-        Column(
+        // --- Search Bar Header ---
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF212121))
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = state.query,
-                    onValueChange = onQueryChanged,
-                    singleLine = true,
-                    placeholder = { Text("Search...") },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedTextColor = Color.White
-                    ),
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = Color.White
-                        )
-                    },
-                    trailingIcon = {
-                        if (state.query.isNotEmpty()) {
-                            IconButton(onClick = { onQueryChanged("") }) {
-                                Icon(
-                                    Icons.Default.Clear,
-                                    contentDescription = "Clear",
-                                    tint = Color.White
-                                )
-                            }
+            OutlinedTextField(
+                value = state.query,
+                onValueChange = onQueryChanged,
+                singleLine = true,
+                placeholder = { Text("Search...") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedTextColor = Color.White
+                ),
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = Color.White
+                    )
+                },
+                trailingIcon = {
+                    if (state.query.isNotEmpty()) {
+                        IconButton(onClick = { onQueryChanged("") }) {
+                            Icon(
+                                Icons.Default.Clear,
+                                contentDescription = "Clear",
+                                tint = Color.White
+                            )
                         }
                     }
-                )
-
-                Spacer(Modifier.width(10.dp))
-
-                Button(
-                    onClick = onSubmit,
-                    enabled = state.query.trim().isNotEmpty() && !state.isRefreshing,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.Black,
-                        disabledContentColor = Color.Black,
-                        disabledContainerColor = Color.DarkGray
-                    )
-                ) {
-                    Text("Go")
-                }
-            }
-
-            RecentSearchesSection(
-                recent = state.recentSearches,
-                onClick = onRecentSearchClick,
-                onClear = onClearRecents
+                },
+                modifier = Modifier.weight(1f)
             )
 
-            when (val mode = state.viewDisplayMode) {
-                ViewDisplayMode.Content -> {
-                    if (!state.hasSearched) {
-                        CenterMessage("Search for films or news.")
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 8.dp)
-                        ) {
-                            items(state.items, key = { it.id }) { film ->
-                                FilmCard(
-                                    film = film,
-                                    // Ensure this key matches the one in FilmDetailScreen
-                                    sharedKey = "image-${film.id}",
-                                    onClick = { onFilmClick(film) },
-                                    animatedVisibilityScope = animatedVisibilityScope,
-                                    sharedTransitionScope = sharedTransitionScope
-                                )
-                            }
+            Spacer(Modifier.width(10.dp))
 
-                            item(key = "search-footer") {
-
-                                when {
-                                    state.isLoadingPage -> {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Button(
-                                                onClick = {},
-                                                enabled = false,
-                                                colors = ButtonDefaults.buttonColors(
-                                                    disabledContentColor = Color.Black,
-                                                    disabledContainerColor = Color.White,
-                                                ),
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("LOADING...")
-                                            }
-                                        }
-                                    }
-
-                                    state.canLoadMore -> {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(44.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Button(
-                                                onClick = onLoadMore,
-                                                enabled = !state.isRefreshing,
-                                                colors = ButtonDefaults.buttonColors(
-                                                    contentColor = Color.Black,
-                                                    containerColor = Color.White,
-                                                ),
-                                                modifier = Modifier.fillMaxSize(),
-                                                shape = RectangleShape,
-                                                contentPadding = PaddingValues(0.dp)
-                                            ) {
-                                                Text("MORE")
-                                            }
-                                        }
-                                    }
-
-                                    else -> {
-                                        Spacer(Modifier.height(18.dp))
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                ViewDisplayMode.Empty -> SotwEmptyState()
-                is ViewDisplayMode.Error -> SotwErrorState(message = mode.message)
-                ViewDisplayMode.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    SotwCustomLoader()
-                }
+            Button(
+                onClick = onSubmit,
+                enabled = state.query.trim().isNotEmpty() && !state.isRefreshing,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black,
+                    disabledContentColor = Color.Black,
+                    disabledContainerColor = Color.DarkGray
+                )
+            ) {
+                Text("Go")
             }
+        }
+
+        // --- Recent Searches Section ---
+        RecentSearchesSection(
+            recent = state.recentSearches,
+            onClick = onRecentSearchClick,
+            onClear = onClearRecents
+        )
+
+        // --- Results List ---
+        // Special case: If user hasn't searched yet, show "CenterMessage" instead of "FilmListContent"
+        // Or if you prefer, handle "not searched" via a ViewDisplayMode in the Reducer.
+        if (!state.hasSearched) {
+            CenterMessage("Search for films or news.")
+        } else {
+            FilmListContent(
+                items = state.items,
+                viewDisplayMode = state.viewDisplayMode,
+                isRefreshing = state.isRefreshing,
+                onRefresh = onRefresh,
+                onFilmClick = onFilmClick,
+                onBookmarkToggle = onBookmarkToggle,
+                onLoadMore = onLoadMore,
+                isLoadingPage = state.isLoadingPage,
+                canLoadMore = state.canLoadMore,
+                animatedVisibilityScope = animatedVisibilityScope,
+                sharedTransitionScope = sharedTransitionScope
+            )
         }
     }
 }
@@ -323,7 +248,8 @@ private fun SearchScreenPreviewEmpty() {
                     onClearRecents = {},
                     onLoadMore = {},
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    onBookmarkToggle = {}
                 )
             }
         }
@@ -353,7 +279,8 @@ private fun SearchScreenPreviewError() {
                     onClearRecents = {},
                     onLoadMore = {},
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    onBookmarkToggle = {}
                 )
             }
         }
@@ -383,7 +310,8 @@ private fun SearchScreenPreviewEmptyResult() {
                     onClearRecents = {},
                     onLoadMore = {},
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    onBookmarkToggle = {}
                 )
             }
         }
@@ -429,7 +357,8 @@ private fun SearchScreenPreview() {
                     onClearRecents = {},
                     onLoadMore = {},
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout
+                    sharedTransitionScope = this@SharedTransitionLayout,
+                    onBookmarkToggle = {}
                 )
             }
         }

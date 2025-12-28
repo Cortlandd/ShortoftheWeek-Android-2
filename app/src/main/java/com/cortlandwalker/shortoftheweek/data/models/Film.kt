@@ -43,7 +43,8 @@ data class Film(
     val topic: FilmTerm? = null,
     val genre: FilmTerm? = null,
     val style: FilmTerm? = null,
-    val subscriptions: Boolean? = null
+    val subscriptions: Boolean? = null,
+    val isBookmarked: Boolean = false,
 ): Parcelable {
     enum class Kind { VIDEO, ARTICLE, NEWS, UNKNOWN }
 

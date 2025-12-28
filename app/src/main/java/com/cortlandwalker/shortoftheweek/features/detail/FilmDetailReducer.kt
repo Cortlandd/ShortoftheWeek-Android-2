@@ -2,6 +2,7 @@ package com.cortlandwalker.shortoftheweek.features.detail
 
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
+import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode.*
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,7 @@ class FilmDetailReducer @Inject constructor(
                     val mode = if (action.film != null) {
                         ViewDisplayMode.Content
                     } else {
-                        ViewDisplayMode.Error("Not found")
+                        Error("Not found")
                     }
                     s.copy(
                         film = action.film,
@@ -51,7 +52,7 @@ class FilmDetailReducer @Inject constructor(
             }
             is FilmDetailAction.Failed -> {
                 state { s ->
-                    val mode = if (s.film != null) s.viewDisplayMode else ViewDisplayMode.Error(action.message)
+                    val mode = if (s.film != null) s.viewDisplayMode else Error(action.message)
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
@@ -59,6 +60,12 @@ class FilmDetailReducer @Inject constructor(
                 if (!currentState.film?.playUrl.isNullOrBlank()) {
                     state { it.copy(isPlaying = true) }
                 }
+            }
+
+            FilmDetailAction.OnBookmarkToggle -> {
+                val film = currentState.film ?: return
+                repo.toggleBookmark(film)
+                state { it.copy(film = film.copy(isBookmarked = !film.isBookmarked)) }
             }
         }
     }

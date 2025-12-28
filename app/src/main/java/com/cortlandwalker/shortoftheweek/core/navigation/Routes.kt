@@ -13,6 +13,7 @@ object Routes {
     const val Home = "home"
     const val News = "news"
     const val Search = "search"
+    const val Bookmarks = "bookmarks"
     
     // Detail route with arguments
     const val Detail = "detail/{filmJson}"

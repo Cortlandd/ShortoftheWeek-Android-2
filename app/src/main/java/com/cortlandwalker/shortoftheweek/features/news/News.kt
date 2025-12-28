@@ -1,5 +1,6 @@
 package com.cortlandwalker.shortoftheweek.features.news
 
+import com.cortlandwalker.shortoftheweek.core.helpers.BookmarkAction
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.features.home.HomeAction
@@ -20,6 +21,7 @@ sealed interface NewsAction {
     data class Loaded(val items: List<Film>, val fromRefresh: Boolean) : NewsAction
     data class Failed(val message: String, val fromRefresh: Boolean) : NewsAction
     data class OnFilmSelected(val film: Film) : NewsAction
+    data class OnBookmarkToggle(override val film: Film) : NewsAction, BookmarkAction
 }
 
 sealed interface NewsEffect {

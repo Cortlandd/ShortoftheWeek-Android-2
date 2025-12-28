@@ -3,7 +3,10 @@ package com.cortlandwalker.shortoftheweek.features.news
 import android.util.Log
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
+import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode.*
+import com.cortlandwalker.shortoftheweek.core.helpers.updateBookmarkState
 import com.cortlandwalker.shortoftheweek.features.home.HomeAction
+import com.cortlandwalker.shortoftheweek.features.news.NewsEffect.*
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -40,11 +43,17 @@ class NewsReducer @Inject constructor(
             }
             is NewsAction.Failed -> {
                 state { s ->
-                    val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else ViewDisplayMode.Error(action.message)
+                    val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else Error(action.message)
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
-            is NewsAction.OnFilmSelected -> emit(NewsEffect.OpenFilmDetail(action.film))
+            is NewsAction.OnFilmSelected -> emit(OpenFilmDetail(action.film))
+            is NewsAction.OnBookmarkToggle -> {
+                repo.toggleBookmark(action.film)
+                state { s ->
+                    s.copy(items = s.items.updateBookmarkState(action.film.id))
+                }
+            }
         }
     }
 

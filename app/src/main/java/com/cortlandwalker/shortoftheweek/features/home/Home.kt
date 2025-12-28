@@ -1,5 +1,6 @@
 package com.cortlandwalker.shortoftheweek.features.home
 
+import com.cortlandwalker.shortoftheweek.core.helpers.BookmarkAction
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.data.models.Film
 
@@ -17,6 +18,7 @@ sealed interface HomeAction {
     data object OnRefresh : HomeAction
     data object OnLoadMore: HomeAction
     data class Loaded(val items: List<Film>, val fromRefresh: Boolean) : HomeAction
+    data class OnBookmarkToggle(override val film: Film) : HomeAction, BookmarkAction
     data class Failed(val message: String, val fromRefresh: Boolean) : HomeAction
     data class OnFilmSelected(val film: Film) : HomeAction
 }

@@ -1,5 +1,6 @@
 package com.cortlandwalker.shortoftheweek.features.search
 
+import com.cortlandwalker.shortoftheweek.core.helpers.BookmarkAction
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.data.models.Film
 
@@ -29,6 +30,7 @@ sealed interface SearchAction {
     data class OnRecentSearchesLoaded(val items: List<String>) : SearchAction
     data class OnRecentSearchClicked(val query: String) : SearchAction
     data object OnClearRecentSearches : SearchAction
+    data class OnBookmarkToggle(override val film: Film) : SearchAction, BookmarkAction
 }
 
 sealed interface SearchEffect {

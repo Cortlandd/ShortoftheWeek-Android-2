@@ -17,6 +17,7 @@ sealed interface FilmDetailAction {
     data class Loaded(val film: Film?, val fromRefresh: Boolean) : FilmDetailAction
     data class SetInitialFilm(val film: Film) : FilmDetailAction
     data class Failed(val message: String, val fromRefresh: Boolean) : FilmDetailAction
+    data object OnBookmarkToggle : FilmDetailAction
     data object OnPlayPressed : FilmDetailAction
 }
 

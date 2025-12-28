@@ -25,5 +25,8 @@ object CacheModule {
 
     @Provides
     fun provideFilmDao(db: SotwCacheDb): FilmDao = db.filmDao()
+
+    @Provides
+    fun provideBookmarksDao(db: SotwCacheDb): BookmarkDao = db.bookmarkDao()
 }
 
