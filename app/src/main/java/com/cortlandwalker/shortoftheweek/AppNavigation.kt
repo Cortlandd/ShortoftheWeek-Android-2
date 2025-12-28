@@ -2,13 +2,10 @@ package com.cortlandwalker.shortoftheweek
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
@@ -81,7 +78,6 @@ fun AppNavigation(
                 ) {
                     val items = listOf(
                         Triple(Routes.Home, "Home", Icons.Default.Home),
-                        // This uses the correctly imported AutoMirrored.Outlined.List
                         Triple(Routes.News, "News", Icons.AutoMirrored.Outlined.List),
                         Triple(Routes.Search, "Search", Icons.Default.Search),
                         Triple(Routes.Bookmarks, "Saved", Icons.Default.Favorite)
@@ -125,11 +121,13 @@ fun AppNavigation(
                 val viewModel = hiltViewModel<HomeReducer>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
+                val homePrefix = "home"
+
                 LaunchedEffect(viewModel) {
                     viewModel.effect.collect { effect ->
                         when (effect) {
                             is HomeEffect.OpenFilmDetail -> {
-                                navController.navigate(Routes.detail(effect.film))
+                                navController.navigate(Routes.detail(effect.film, homePrefix))
                             }
                         }
                     }
@@ -139,7 +137,8 @@ fun AppNavigation(
                     state = state,
                     reducer = viewModel,
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = sharedTransitionScope
+                    sharedTransitionScope = sharedTransitionScope,
+                    sharedElementPrefix = homePrefix
                 )
             }
 
@@ -148,11 +147,13 @@ fun AppNavigation(
                 val viewModel = hiltViewModel<NewsReducer>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
+                val newsPrefix = "news"
+
                 LaunchedEffect(viewModel) {
                     viewModel.effect.collect { effect ->
                         when (effect) {
                             is NewsEffect.OpenFilmDetail -> {
-                                navController.navigate(Routes.detail(effect.film))
+                                navController.navigate(Routes.detail(effect.film, newsPrefix))
                             }
                         }
                     }
@@ -162,7 +163,8 @@ fun AppNavigation(
                     state = state,
                     reducer = viewModel,
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = sharedTransitionScope
+                    sharedTransitionScope = sharedTransitionScope,
+                    sharedElementPrefix = newsPrefix
                 )
             }
 
@@ -171,11 +173,13 @@ fun AppNavigation(
                 val viewModel = hiltViewModel<SearchReducer>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
+                val searchPrefix = "search"
+
                 LaunchedEffect(viewModel) {
                     viewModel.effect.collect { effect ->
                         when (effect) {
                             is SearchEffect.OpenFilmDetail -> {
-                                navController.navigate(Routes.detail(effect.film))
+                                navController.navigate(Routes.detail(effect.film, searchPrefix))
                             }
                         }
                     }
@@ -185,7 +189,8 @@ fun AppNavigation(
                     state = state,
                     reducer = viewModel,
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = sharedTransitionScope
+                    sharedTransitionScope = sharedTransitionScope,
+                    sharedElementPrefix = searchPrefix
                 )
             }
 
@@ -194,11 +199,13 @@ fun AppNavigation(
                 val viewModel = hiltViewModel<BookmarksReducer>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
+                val bookmarksPrefix = "bookmarks"
+
                 LaunchedEffect(viewModel) {
                     viewModel.effect.collect { effect ->
                         when (effect) {
                             is BookmarksEffect.OpenFilmDetail -> {
-                                navController.navigate(Routes.detail(effect.film))
+                                navController.navigate(Routes.detail(effect.film, bookmarksPrefix))
                             }
                         }
                     }
@@ -208,18 +215,23 @@ fun AppNavigation(
                     state = state,
                     reducer = viewModel,
                     animatedVisibilityScope = this,
-                    sharedTransitionScope = sharedTransitionScope
+                    sharedTransitionScope = sharedTransitionScope,
+                    sharedElementPrefix = bookmarksPrefix
                 )
             }
 
+            // --- DETAILS ---
             composable(
                 route = Routes.Detail,
                 arguments = listOf(
                     navArgument("filmJson") { type = NavType.StringType },
+                    navArgument("originPrefix") { type = NavType.StringType },
                 )
             ) { backStackEntry ->
                 val viewModel = hiltViewModel<FilmDetailReducer>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
+
+                val originPrefix = backStackEntry.arguments?.getString("originPrefix") ?: "unknown"
 
                 val filmJson = backStackEntry.arguments?.getString("filmJson")
                 val film = remember(filmJson) {
@@ -246,7 +258,8 @@ fun AppNavigation(
                     cachedThumbnail = thumb,
                     animatedVisibilityScope = this,
                     sharedTransitionScope = sharedTransitionScope,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    sharedElementPrefix = originPrefix,
                 )
             }
         }

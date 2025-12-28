@@ -18,7 +18,8 @@ fun HomeScreen(
     state: HomeState,
     reducer: HomeReducer,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     HomeScreenContent(
         state = state,
@@ -27,7 +28,8 @@ fun HomeScreen(
         onLoadMore = { reducer.postAction(HomeAction.OnLoadMore) },
         onBookmarkToggle = { reducer.postAction(HomeAction.OnBookmarkToggle(it)) },
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        sharedElementPrefix = sharedElementPrefix
     )
 }
 
@@ -40,7 +42,8 @@ fun HomeScreenContent(
     onLoadMore: () -> Unit,
     onBookmarkToggle: (Film) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     FilmListContent(
         items = state.items,
@@ -53,7 +56,8 @@ fun HomeScreenContent(
         isLoadingPage = state.isLoadingPage,
         canLoadMore = state.canLoadMore,
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        sharedElementPrefix = sharedElementPrefix
     )
 }
 
@@ -107,7 +111,8 @@ private fun HomeScreenPreview() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
@@ -131,7 +136,8 @@ private fun HomeScreenPreviewEmpty() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
@@ -155,7 +161,8 @@ private fun HomeScreenPreviewError() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
@@ -179,7 +186,8 @@ private fun HomeScreenPreviewLoading() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }

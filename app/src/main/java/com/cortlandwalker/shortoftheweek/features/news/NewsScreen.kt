@@ -10,7 +10,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -39,7 +38,8 @@ fun NewsScreen(
     state: NewsState,
     reducer: NewsReducer,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     NewsScreenContent(
         state = state,
@@ -48,7 +48,8 @@ fun NewsScreen(
         onLoadMore = { reducer.postAction(NewsAction.OnLoadMore) },
         onBookmarkToggle = { reducer.postAction(NewsAction.OnBookmarkToggle(it)) },
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        sharedElementPrefix = sharedElementPrefix
     )
 }
 
@@ -61,7 +62,8 @@ fun NewsScreenContent(
     onLoadMore: () -> Unit,
     onBookmarkToggle: (Film) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Shared List Component
@@ -77,6 +79,7 @@ fun NewsScreenContent(
             canLoadMore = state.canLoadMore,
             animatedVisibilityScope = animatedVisibilityScope,
             sharedTransitionScope = sharedTransitionScope,
+            sharedElementPrefix = sharedElementPrefix
         )
 
         Box(
@@ -142,9 +145,10 @@ private fun NewsScreenPreview() {
                     onRefresh = {},
                     onFilmClick = {},
                     onLoadMore = {},
+                    onBookmarkToggle = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    sharedElementPrefix = ""
                 )
             }
         }

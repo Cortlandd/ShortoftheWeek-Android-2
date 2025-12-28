@@ -14,7 +14,8 @@ fun BookmarksScreen(
     state: BookmarksState,
     reducer: BookmarksReducer,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     BookmarksScreenContent(
         state = state,
@@ -22,7 +23,8 @@ fun BookmarksScreen(
         onFilmClick = { reducer.postAction(BookmarksAction.OnFilmSelected(it)) },
         onBookmarkToggle = { reducer.postAction(BookmarksAction.OnBookmarkToggle(it)) },
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        sharedElementPrefix = sharedElementPrefix
     )
 }
 
@@ -34,7 +36,8 @@ fun BookmarksScreenContent(
     onFilmClick: (Film) -> Unit,
     onBookmarkToggle: (Film) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     FilmListContent(
         items = state.items,
@@ -47,6 +50,7 @@ fun BookmarksScreenContent(
         isLoadingPage = false,
         canLoadMore = false,
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        sharedElementPrefix = sharedElementPrefix
     )
 }

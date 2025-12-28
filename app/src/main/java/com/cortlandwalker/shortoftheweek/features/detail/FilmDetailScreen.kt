@@ -5,7 +5,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.copy
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,12 +22,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -60,8 +56,6 @@ import com.cortlandwalker.shortoftheweek.core.helpers.decodeHtmlEntities
 import com.cortlandwalker.shortoftheweek.core.helpers.fromHex
 import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.data.models.isNews
-import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
-import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
 import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
 import com.cortlandwalker.shortoftheweek.ui.components.SotwErrorState
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
@@ -76,7 +70,8 @@ fun FilmDetailScreen(
     cachedThumbnail: String?,
     onBack: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     FilmDetailScreenContent(
         state = state,
@@ -87,7 +82,8 @@ fun FilmDetailScreen(
         cachedThumbnail = cachedThumbnail,
         animatedVisibilityScope = animatedVisibilityScope,
         sharedTransitionScope = sharedTransitionScope,
-        onBookmarkToggle = { reducer.postAction(FilmDetailAction.OnBookmarkToggle) }
+        onBookmarkToggle = { reducer.postAction(FilmDetailAction.OnBookmarkToggle) },
+        sharedElementPrefix = sharedElementPrefix
     )
 }
 
@@ -102,7 +98,8 @@ fun FilmDetailScreenContent(
     cachedId: Int,
     cachedThumbnail: String?,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     Scaffold(
         containerColor = Color.Black,
@@ -172,7 +169,8 @@ fun FilmDetailScreenContent(
                         isPlaying = state.isPlaying,
                         onPlay = onPlay,
                         animatedVisibilityScope = animatedVisibilityScope,
-                        sharedTransitionScope = sharedTransitionScope
+                        sharedTransitionScope = sharedTransitionScope,
+                        sharedElementPrefix = sharedElementPrefix
                     )
                 }
             }
@@ -187,7 +185,8 @@ private fun FilmDetailBody(
     isPlaying: Boolean,
     onPlay: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     val scroll = rememberScrollState()
     Column(
@@ -201,7 +200,8 @@ private fun FilmDetailBody(
             isPlaying = isPlaying,
             onPlay = onPlay,
             animatedVisibilityScope = animatedVisibilityScope,
-            sharedTransitionScope = sharedTransitionScope
+            sharedTransitionScope = sharedTransitionScope,
+            sharedElementPrefix = sharedElementPrefix
         )
 
         if (!film.isNews) {
@@ -219,7 +219,8 @@ private fun HeroHeader(
     isPlaying: Boolean,
     onPlay: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     val imageUrl = film.backgroundImageUrl ?: film.thumbnailUrl
     val playUrl = film.playUrl
@@ -249,7 +250,7 @@ private fun HeroHeader(
                             .fillMaxSize()
                             .background(Color.Black)
                             .sharedElement(
-                                sharedContentState = rememberSharedContentState(key = "image-${film.id}"),
+                                sharedContentState = rememberSharedContentState(key = "$sharedElementPrefix-image-${film.id}"),
                                 animatedVisibilityScope = animatedVisibilityScope,
                                 boundsTransform = { _, _ ->
                                     tween(durationMillis = 400)
@@ -490,12 +491,13 @@ private fun FilmDetailScreenPreview() {
                     ),
                     onRefresh = {},
                     onPlay = {},
+                    onBack = {},
+                    onBookmarkToggle = {},
                     cachedId = 1,
                     cachedThumbnail = "https://picsum.photos/900/500",
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBack = {},
-                    onBookmarkToggle = {}
+                    sharedElementPrefix = ""
                 )
             }
         }

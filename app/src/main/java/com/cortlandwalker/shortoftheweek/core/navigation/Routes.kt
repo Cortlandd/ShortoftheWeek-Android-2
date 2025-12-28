@@ -16,11 +16,11 @@ object Routes {
     const val Bookmarks = "bookmarks"
     
     // Detail route with arguments
-    const val Detail = "detail/{filmJson}"
+    const val Detail = "detail/{filmJson}?prefix={originPrefix}"
 
-    fun detail(film: Film): String {
+    fun detail(film: Film, originPrefix: String): String {
         val json = Gson().toJson(film)
         val encodedJson = Uri.encode(json)
-        return "detail/$encodedJson"
+        return "detail/$encodedJson?prefix=$originPrefix"
     }
 }

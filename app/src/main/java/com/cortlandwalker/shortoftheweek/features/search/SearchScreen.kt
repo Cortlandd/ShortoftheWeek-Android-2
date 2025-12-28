@@ -53,7 +53,8 @@ fun SearchScreen(
     state: SearchState,
     reducer: SearchReducer,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     SearchScreenContent(
         state = state,
@@ -66,7 +67,8 @@ fun SearchScreen(
         onLoadMore = { reducer.postAction(SearchAction.OnLoadMore) },
         onBookmarkToggle = { reducer.postAction(SearchAction.OnBookmarkToggle(it)) },
         animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope
+        sharedTransitionScope = sharedTransitionScope,
+        sharedElementPrefix = sharedElementPrefix
     )
 }
 
@@ -83,7 +85,8 @@ fun SearchScreenContent(
     onLoadMore: () -> Unit,
     onBookmarkToggle: (Film) -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    sharedTransitionScope: SharedTransitionScope,
+    sharedElementPrefix: String
 ) {
     Column(
         modifier = Modifier
@@ -167,7 +170,8 @@ fun SearchScreenContent(
                 isLoadingPage = state.isLoadingPage,
                 canLoadMore = state.canLoadMore,
                 animatedVisibilityScope = animatedVisibilityScope,
-                sharedTransitionScope = sharedTransitionScope
+                sharedTransitionScope = sharedTransitionScope,
+                sharedElementPrefix = sharedElementPrefix
             )
         }
     }
@@ -249,7 +253,8 @@ private fun SearchScreenPreviewEmpty() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
@@ -280,7 +285,8 @@ private fun SearchScreenPreviewError() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
@@ -311,7 +317,8 @@ private fun SearchScreenPreviewEmptyResult() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
@@ -358,7 +365,8 @@ private fun SearchScreenPreview() {
                     onLoadMore = {},
                     animatedVisibilityScope = this,
                     sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {}
+                    onBookmarkToggle = {},
+                    sharedElementPrefix = ""
                 )
             }
         }
