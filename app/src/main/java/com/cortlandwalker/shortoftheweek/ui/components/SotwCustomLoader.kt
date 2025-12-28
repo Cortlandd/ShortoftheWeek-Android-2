@@ -94,8 +94,7 @@ fun SotwCustomLoader(
 
     Box(
         modifier = modifier
-            .size(totalSize)
-            .background(if (isSystemInDarkTheme()) Color(0xFF212121) else Color.White),
+            .size(totalSize),
         contentAlignment = Alignment.Center
     ) {
         // 1. Static Ring (Canvas)
@@ -202,8 +201,7 @@ private fun LoaderPreview() {
     val backgroundColor = if (isSystemInDarkTheme()) Color(0xFF212121) else Color.White
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         SotwCustomLoader()

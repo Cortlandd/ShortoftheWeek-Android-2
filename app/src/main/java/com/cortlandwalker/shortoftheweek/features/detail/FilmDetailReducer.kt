@@ -1,6 +1,5 @@
 package com.cortlandwalker.shortoftheweek.features.detail
 
-import com.cortlandwalker.ghettoxide.Reducer
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository

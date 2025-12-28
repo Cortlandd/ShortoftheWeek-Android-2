@@ -59,6 +59,7 @@ import com.cortlandwalker.shortoftheweek.data.models.isNews
 import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
 import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
+import com.cortlandwalker.shortoftheweek.ui.components.SotwErrorState
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
@@ -163,7 +164,7 @@ fun FilmDetailScreenContent(
                     }
                 }
 
-                is ViewDisplayMode.Error -> CenterMessage(mode.message)
+                is ViewDisplayMode.Error -> SotwErrorState(message = mode.message)
 
                 ViewDisplayMode.Empty -> {
                     SotwEmptyState()

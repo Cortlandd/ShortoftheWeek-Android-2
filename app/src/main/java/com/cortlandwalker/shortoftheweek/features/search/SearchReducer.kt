@@ -1,10 +1,8 @@
 package com.cortlandwalker.shortoftheweek.features.search
 
 import android.util.Log
-import com.cortlandwalker.ghettoxide.Reducer
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
-import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode.*
 import com.cortlandwalker.shortoftheweek.data.recent.RecentSearchesStore
 import com.cortlandwalker.shortoftheweek.features.search.SearchEffect.*
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
@@ -55,7 +53,7 @@ class SearchReducer @Inject constructor(
             }
             is SearchAction.Failed -> {
                 state { s ->
-                    val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else Error(action.message)
+                    val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else ViewDisplayMode.Error(action.message)
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }

@@ -1,7 +1,6 @@
 package com.cortlandwalker.shortoftheweek.features.news
 
 import android.util.Log
-import com.cortlandwalker.ghettoxide.Reducer
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.features.home.HomeAction
@@ -66,11 +65,7 @@ class NewsReducer @Inject constructor(
     }
 
     private suspend fun load(forceRefresh: Boolean, fromRefresh: Boolean) {
-        if (fromRefresh) {
-            state { it.copy(isRefreshing = true) }
-        } else {
-            state { it.copy(viewDisplayMode = ViewDisplayMode.Loading) }
-        }
+        state { it.copy(isRefreshing = true, viewDisplayMode = ViewDisplayMode.Loading) }
 
         try {
             val items = withContext(Dispatchers.IO) {

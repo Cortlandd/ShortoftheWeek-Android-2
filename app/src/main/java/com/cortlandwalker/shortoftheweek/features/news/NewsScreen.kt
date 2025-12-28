@@ -41,6 +41,7 @@ import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
 import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
+import com.cortlandwalker.shortoftheweek.ui.components.SotwErrorState
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -150,7 +151,7 @@ fun NewsScreenContent(
 
                 ViewDisplayMode.Empty -> SotwEmptyState()
 
-                is ViewDisplayMode.Error -> CenterMessage(mode.message)
+                is ViewDisplayMode.Error -> SotwErrorState(message = mode.message)
 
                 ViewDisplayMode.Loading -> Box(
                     modifier = Modifier.fillMaxSize(),

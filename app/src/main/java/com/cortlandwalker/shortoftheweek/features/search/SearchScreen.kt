@@ -56,6 +56,7 @@ import com.cortlandwalker.shortoftheweek.ui.components.CenterMessage
 import com.cortlandwalker.shortoftheweek.ui.components.FilmCard
 import com.cortlandwalker.shortoftheweek.ui.components.SotwCustomLoader
 import com.cortlandwalker.shortoftheweek.ui.components.SotwEmptyState
+import com.cortlandwalker.shortoftheweek.ui.components.SotwErrorState
 import com.cortlandwalker.shortoftheweek.ui.theme.DomDiagonal
 import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
@@ -238,7 +239,7 @@ fun SearchScreenContent(
                     }
                 }
                 ViewDisplayMode.Empty -> SotwEmptyState()
-                is ViewDisplayMode.Error -> CenterMessage(mode.message)
+                is ViewDisplayMode.Error -> SotwErrorState(message = mode.message)
                 ViewDisplayMode.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     SotwCustomLoader()
                 }
@@ -305,7 +306,6 @@ private fun RecentSearchesSection(
 private fun SearchScreenPreviewEmpty() {
     ShortOfTheWeekTheme {
         SharedTransitionLayout {
-            // FIX: Use AnimatedVisibility to provide the correct scope
             AnimatedVisibility(visible = true) {
                 SearchScreenContent(
                     state = SearchState(
@@ -329,13 +329,43 @@ private fun SearchScreenPreviewEmpty() {
         }
     }
 }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview(showBackground = false)
+@Composable
+private fun SearchScreenPreviewError() {
+    ShortOfTheWeekTheme {
+        SharedTransitionLayout {
+            AnimatedVisibility(visible = true) {
+                SearchScreenContent(
+                    state = SearchState(
+                        query = "",
+                        hasSearched = false,
+                        viewDisplayMode = ViewDisplayMode.Error(message = "Network Error Occurred"),
+                        recentSearches = listOf("asdfg"),
+                        items = emptyList()
+                    ),
+                    onQueryChanged = {},
+                    onSubmit = {},
+                    onRefresh = {},
+                    onFilmClick = {},
+                    onRecentSearchClick = {},
+                    onClearRecents = {},
+                    onLoadMore = {},
+                    animatedVisibilityScope = this,
+                    sharedTransitionScope = this@SharedTransitionLayout
+                )
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = false)
 @Composable
 private fun SearchScreenPreviewEmptyResult() {
     ShortOfTheWeekTheme {
         SharedTransitionLayout {
-            // FIX: Use AnimatedVisibility to provide the correct scope
             AnimatedVisibility(visible = true) {
                 SearchScreenContent(
                     state = SearchState(
