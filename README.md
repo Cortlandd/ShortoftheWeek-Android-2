@@ -58,13 +58,13 @@ com.cortlandwalker.shortoftheweek
 ```
 
 ## 🚀 Getting Started
-1.  Clone the repository: `git clone https://github.com/your-username/ShortoftheWeek.git`
+1.  Clone the repository: `git clone https://github.com/cortlandd/ShortoftheWeek-android-2.git`
 2. Open the project in Android Studio.
 3. Let Gradle sync the dependencies.
-4. Run the app configuration on an emulator or physical device.
+4. Run the app
 
 
 ## FAQ
 > Q: you work there?
 
-A: nah
+A: nah, i just like the website
