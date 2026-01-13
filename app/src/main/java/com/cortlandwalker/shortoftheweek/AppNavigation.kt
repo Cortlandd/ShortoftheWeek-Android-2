@@ -113,7 +113,7 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = Routes.Home,
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            modifier = Modifier.padding(innerPadding)
         ) {
 
             // --- HOME ---
