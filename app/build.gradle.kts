@@ -59,6 +59,9 @@ dependencies {
     // Ghettoxide for architecture
     api("com.github.Cortlandd:Ghettoxide:1.0.7")
 
+    // Material icons extended
+    api("androidx.compose.material:material-icons-extended-android:1.7.8")
+
     implementation("androidx.datastore:datastore-preferences:1.2.0")
 
     implementation(libs.androidx.core.ktx)
