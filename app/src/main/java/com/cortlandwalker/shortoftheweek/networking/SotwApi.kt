@@ -4,7 +4,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface SotwApi {
-    @GET("/api/v1/mixed")
+    @GET("/api/v1/films")
     suspend fun mixed(
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 10

@@ -5,7 +5,6 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,7 +56,6 @@ fun FilmListContent(
                             onClick = { onFilmClick(film) },
                             animatedVisibilityScope = animatedVisibilityScope,
                             sharedTransitionScope = sharedTransitionScope,
-                            // Logic is handled by the parent passing the specific Action
                             onBookmarkClick = { onBookmarkToggle(film) }
                         )
                     }
@@ -106,9 +104,6 @@ fun FilmListContent(
                                         Text("MORE")
                                     }
                                 }
-                            }
-                            else -> {
-                                Spacer(Modifier.height(18.dp))
                             }
                         }
                     }

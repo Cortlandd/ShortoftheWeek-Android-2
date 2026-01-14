@@ -6,11 +6,17 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Newspaper
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -22,8 +28,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -33,6 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.cortlandwalker.shortoftheweek.core.helpers.fromHex
 import com.cortlandwalker.shortoftheweek.core.navigation.Routes
 import com.cortlandwalker.shortoftheweek.data.models.Film
 import com.cortlandwalker.shortoftheweek.features.bookmarks.BookmarksEffect
@@ -41,15 +52,15 @@ import com.cortlandwalker.shortoftheweek.features.bookmarks.BookmarksScreen
 import com.cortlandwalker.shortoftheweek.features.detail.FilmDetailAction
 import com.cortlandwalker.shortoftheweek.features.detail.FilmDetailReducer
 import com.cortlandwalker.shortoftheweek.features.detail.FilmDetailScreen
-import com.cortlandwalker.shortoftheweek.features.home.HomeEffect
-import com.cortlandwalker.shortoftheweek.features.home.HomeReducer
-import com.cortlandwalker.shortoftheweek.features.home.HomeScreen
 import com.cortlandwalker.shortoftheweek.features.news.NewsEffect
 import com.cortlandwalker.shortoftheweek.features.news.NewsReducer
 import com.cortlandwalker.shortoftheweek.features.news.NewsScreen
 import com.cortlandwalker.shortoftheweek.features.search.SearchEffect
 import com.cortlandwalker.shortoftheweek.features.search.SearchReducer
 import com.cortlandwalker.shortoftheweek.features.search.SearchScreen
+import com.cortlandwalker.shortoftheweek.features.shorts.ShortsEffect
+import com.cortlandwalker.shortoftheweek.features.shorts.ShortsReducer
+import com.cortlandwalker.shortoftheweek.features.shorts.ShortsScreen
 import com.google.gson.Gson
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -61,40 +72,29 @@ fun AppNavigation(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Define when to show bottom bar (Hide on Detail screen)
     val showBottomBar = currentRoute != Routes.Detail
 
     Scaffold(
         bottomBar = {
-            // Animate the bottom bar sliding in/out
             AnimatedVisibility(
                 visible = showBottomBar,
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it }
             ) {
                 NavigationBar(
-                    containerColor = Color.Black,
-                    contentColor = Color.White
+                    containerColor = Color(0xFF1A1A1A),
+                    modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 ) {
                     val items = listOf(
-                        Triple(Routes.Home, "Home", Icons.Default.Home),
-                        Triple(Routes.News, "News", Icons.AutoMirrored.Outlined.List),
-                        Triple(Routes.Search, "Search", Icons.Default.Search),
-                        Triple(Routes.Bookmarks, "Saved", Icons.Default.Favorite)
+                        Triple(Routes.Home, "SHORTS", Icons.Default.Movie),
+                        Triple(Routes.News, "NEWS", Icons.Default.Newspaper),
+                        Triple(Routes.Search, "SEARCH", Icons.Default.Search),
+                        Triple(Routes.Bookmarks, "SAVED", Icons.Default.Favorite)
                     )
 
                     items.forEach { (route, label, icon) ->
                         NavigationBarItem(
-                            icon = { Icon(icon, contentDescription = label) },
-                            label = { Text(label) },
                             selected = currentRoute == route,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color.Black,
-                                selectedTextColor = Color.White,
-                                indicatorColor = Color.White,
-                                unselectedIconColor = Color.Gray,
-                                unselectedTextColor = Color.Gray
-                            ),
                             onClick = {
                                 navController.navigate(route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
@@ -103,7 +103,27 @@ fun AppNavigation(
                                     launchSingleTop = true
                                     restoreState = true
                                 }
-                            }
+                            },
+                            icon = { Icon(icon, contentDescription = label) },
+                            label = {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(text = label, fontSize = 12.sp)
+                                    if (currentRoute == route) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Canvas(modifier = Modifier.size(4.dp)) {
+                                            drawCircle(color = Color.fromHex("#647370"))
+                                        }
+                                    }
+                                }
+                            },
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color.White,
+                                unselectedIconColor = Color.Gray,
+                                selectedTextColor = Color.White,
+                                unselectedTextColor = Color.Gray,
+                                indicatorColor = Color.Transparent
+                            )
                         )
                     }
                 }
@@ -116,29 +136,29 @@ fun AppNavigation(
             modifier = Modifier.padding(innerPadding)
         ) {
 
-            // --- HOME ---
+            // --- SHORTS ---
             composable(Routes.Home) {
-                val viewModel = hiltViewModel<HomeReducer>()
+                val viewModel = hiltViewModel<ShortsReducer>()
                 val state by viewModel.state.collectAsStateWithLifecycle()
 
-                val homePrefix = "home"
+                val shortsPrefix = "shorts"
 
                 LaunchedEffect(viewModel) {
                     viewModel.effect.collect { effect ->
                         when (effect) {
-                            is HomeEffect.OpenFilmDetail -> {
-                                navController.navigate(Routes.detail(effect.film, homePrefix))
+                            is ShortsEffect.OpenFilmDetail -> {
+                                navController.navigate(Routes.detail(effect.film, shortsPrefix))
                             }
                         }
                     }
                 }
 
-                HomeScreen(
+                ShortsScreen(
                     state = state,
                     reducer = viewModel,
                     animatedVisibilityScope = this,
                     sharedTransitionScope = sharedTransitionScope,
-                    sharedElementPrefix = homePrefix
+                    sharedElementPrefix = shortsPrefix
                 )
             }
 

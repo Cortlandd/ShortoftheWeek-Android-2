@@ -1,11 +1,11 @@
-package com.cortlandwalker.shortoftheweek.features.home
+package com.cortlandwalker.shortoftheweek.features.shorts
 
 import android.util.Log
 import com.cortlandwalker.shortoftheweek.core.ViewModelReducer
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode
 import com.cortlandwalker.shortoftheweek.core.helpers.ViewDisplayMode.*
 import com.cortlandwalker.shortoftheweek.core.helpers.updateBookmarkState
-import com.cortlandwalker.shortoftheweek.features.home.HomeEffect.*
+import com.cortlandwalker.shortoftheweek.features.shorts.ShortsEffect.*
 import com.cortlandwalker.shortoftheweek.networking.repository.FilmRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -13,23 +13,23 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeReducer @Inject constructor(
+class ShortsReducer @Inject constructor(
     private val repo: FilmRepository
-) : ViewModelReducer<HomeState, HomeAction, HomeEffect>(HomeState()) {
+) : ViewModelReducer<ShortsState, ShortsAction, ShortsEffect>(ShortsState()) {
 
     init {
         postAction(onLoadAction())
     }
 
-    override fun onLoadAction(): HomeAction = HomeAction.OnLoad
+    override fun onLoadAction(): ShortsAction = ShortsAction.OnLoad
 
-    override suspend fun process(action: HomeAction) {
+    override suspend fun process(action: ShortsAction) {
         when (action) {
-            HomeAction.OnLoad -> load(forceRefresh = false, fromRefresh = false)
-            HomeAction.OnRefresh -> load(forceRefresh = true, fromRefresh = true)
-            HomeAction.OnLoadMore -> loadMore()
+            ShortsAction.OnLoad -> load(forceRefresh = false, fromRefresh = false)
+            ShortsAction.OnRefresh -> load(forceRefresh = true, fromRefresh = true)
+            ShortsAction.OnLoadMore -> loadMore()
 
-            is HomeAction.Loaded -> {
+            is ShortsAction.Loaded -> {
                 state {
                     it.copy(
                         items = action.items,
@@ -40,14 +40,14 @@ class HomeReducer @Inject constructor(
                     )
                 }
             }
-            is HomeAction.Failed -> {
+            is ShortsAction.Failed -> {
                 state { s ->
                     val mode = if (s.items.isNotEmpty()) s.viewDisplayMode else Error(action.message)
                     s.copy(viewDisplayMode = mode, isRefreshing = false)
                 }
             }
-            is HomeAction.OnFilmSelected -> emit(OpenFilmDetail(action.film))
-            is HomeAction.OnBookmarkToggle -> {
+            is ShortsAction.OnFilmSelected -> emit(OpenFilmDetail(action.film))
+            is ShortsAction.OnBookmarkToggle -> {
                 repo.toggleBookmark(action.film)
                 state { s ->
                     s.copy(items = s.items.updateBookmarkState(action.film.id))
@@ -65,10 +65,10 @@ class HomeReducer @Inject constructor(
                 repo.mixed(page = 1 + currentState.page, limit = 10, forceRefresh = false)
             }
             val updatedItems = currentState.items + items
-            postAction(HomeAction.Loaded(updatedItems, fromRefresh = false))
+            postAction(ShortsAction.Loaded(updatedItems, fromRefresh = false))
         } catch (t: Throwable) {
-            Log.e("HomeReducer", t.message ?: "")
-            postAction(HomeAction.Failed(t.message ?: "Failed to load more", fromRefresh = false))
+            Log.e("ShortsReducer", t.message ?: "")
+            postAction(ShortsAction.Failed(t.message ?: "Failed to load more", fromRefresh = false))
         }
     }
 
@@ -79,10 +79,10 @@ class HomeReducer @Inject constructor(
             val items = withContext(Dispatchers.IO) {
                 repo.mixed(page = 1, limit = 10, forceRefresh = forceRefresh)
             }
-            postAction(HomeAction.Loaded(items, fromRefresh = fromRefresh))
+            postAction(ShortsAction.Loaded(items, fromRefresh = fromRefresh))
         } catch (t: Throwable) {
-            Log.e("HomeReducer", t.message ?: "")
-            postAction(HomeAction.Failed(t.message ?: "Failed to load", fromRefresh = fromRefresh))
+            Log.e("ShortsReducer", t.message ?: "")
+            postAction(ShortsAction.Failed(t.message ?: "Failed to load", fromRefresh = fromRefresh))
         }
     }
 }

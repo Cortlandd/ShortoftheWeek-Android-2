@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -102,7 +103,8 @@ fun FilmDetailScreenContent(
     sharedElementPrefix: String
 ) {
     Scaffold(
-        containerColor = Color.Black,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        containerColor = Color.Transparent,
         floatingActionButton = {
             Column {
                 FloatingActionButton(
@@ -135,7 +137,6 @@ fun FilmDetailScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.Black)
         ) {
             val displayFilm = state.film ?: Film(
                 id = cachedId,

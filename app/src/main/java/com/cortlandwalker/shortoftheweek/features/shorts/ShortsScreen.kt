@@ -1,4 +1,4 @@
-package com.cortlandwalker.shortoftheweek.features.home
+package com.cortlandwalker.shortoftheweek.features.shorts
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -14,19 +14,19 @@ import com.cortlandwalker.shortoftheweek.ui.theme.ShortOfTheWeekTheme
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreen(
-    state: HomeState,
-    reducer: HomeReducer,
+fun ShortsScreen(
+    state: ShortsState,
+    reducer: ShortsReducer,
     animatedVisibilityScope: AnimatedVisibilityScope,
     sharedTransitionScope: SharedTransitionScope,
     sharedElementPrefix: String
 ) {
-    HomeScreenContent(
+    ShortsScreenContent(
         state = state,
-        onRefresh = { reducer.postAction(HomeAction.OnRefresh) },
-        onFilmClick = { reducer.postAction(HomeAction.OnFilmSelected(it)) },
-        onLoadMore = { reducer.postAction(HomeAction.OnLoadMore) },
-        onBookmarkToggle = { reducer.postAction(HomeAction.OnBookmarkToggle(it)) },
+        onRefresh = { reducer.postAction(ShortsAction.OnRefresh) },
+        onFilmClick = { reducer.postAction(ShortsAction.OnFilmSelected(it)) },
+        onLoadMore = { reducer.postAction(ShortsAction.OnLoadMore) },
+        onBookmarkToggle = { reducer.postAction(ShortsAction.OnBookmarkToggle(it)) },
         animatedVisibilityScope = animatedVisibilityScope,
         sharedTransitionScope = sharedTransitionScope,
         sharedElementPrefix = sharedElementPrefix
@@ -35,8 +35,8 @@ fun HomeScreen(
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreenContent(
-    state: HomeState,
+fun ShortsScreenContent(
+    state: ShortsState,
     onRefresh: () -> Unit,
     onFilmClick: (Film) -> Unit,
     onLoadMore: () -> Unit,
@@ -64,12 +64,12 @@ fun HomeScreenContent(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Preview(showBackground = false)
 @Composable
-private fun HomeScreenPreview() {
+private fun ShortsScreenPreview() {
     ShortOfTheWeekTheme {
         SharedTransitionLayout {
             AnimatedVisibility(visible = true) {
-                HomeScreenContent(
-                    state = HomeState(
+                ShortsScreenContent(
+                    state = ShortsState(
                         viewDisplayMode = ViewDisplayMode.Content,
                         items = listOf(
                             Film(
@@ -105,81 +105,6 @@ private fun HomeScreenPreview() {
                                 articleHtml = "<p>Preview</p>"
                             )
                         )
-                    ),
-                    onRefresh = {},
-                    onFilmClick = {},
-                    onLoadMore = {},
-                    animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {},
-                    sharedElementPrefix = ""
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Preview(showBackground = false)
-@Composable
-private fun HomeScreenPreviewEmpty() {
-    ShortOfTheWeekTheme {
-        SharedTransitionLayout {
-            AnimatedVisibility(visible = true) {
-                HomeScreenContent(
-                    state = HomeState(
-                        viewDisplayMode = ViewDisplayMode.Empty,
-                        items = listOf()
-                    ),
-                    onRefresh = {},
-                    onFilmClick = {},
-                    onLoadMore = {},
-                    animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {},
-                    sharedElementPrefix = ""
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Preview(showBackground = false)
-@Composable
-private fun HomeScreenPreviewError() {
-    ShortOfTheWeekTheme {
-        SharedTransitionLayout {
-            AnimatedVisibility(visible = true) {
-                HomeScreenContent(
-                    state = HomeState(
-                        viewDisplayMode = ViewDisplayMode.Error(message = "Network Error Occurred"),
-                        items = listOf()
-                    ),
-                    onRefresh = {},
-                    onFilmClick = {},
-                    onLoadMore = {},
-                    animatedVisibilityScope = this,
-                    sharedTransitionScope = this@SharedTransitionLayout,
-                    onBookmarkToggle = {},
-                    sharedElementPrefix = ""
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Preview(showBackground = false)
-@Composable
-private fun HomeScreenPreviewLoading() {
-    ShortOfTheWeekTheme {
-        SharedTransitionLayout {
-            AnimatedVisibility(visible = true) {
-                HomeScreenContent(
-                    state = HomeState(
-                        viewDisplayMode = ViewDisplayMode.Loading,
-                        items = listOf()
                     ),
                     onRefresh = {},
                     onFilmClick = {},
