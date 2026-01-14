@@ -14,7 +14,6 @@ import com.cortlandwalker.shortoftheweek.networking.SotwApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.net.URLEncoder
 import java.util.concurrent.ConcurrentHashMap
@@ -81,7 +80,7 @@ class FilmRepository @Inject constructor(
 
     suspend fun mixed(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> {
         val raw = getFeed(key = "mixed:$page:$limit", forceRefresh = forceRefresh, trimPrefix = null) {
-            api.mixed(page = page, limit = limit).data
+            api.films(page = page, limit = limit).data
         }
         return hydrateBookmarks(raw)
     }
