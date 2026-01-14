@@ -2,6 +2,8 @@
 
 _Disclaimer: This is an unofficial, fan-made project and is not affiliated with Short of the Week._
 
+### Told AI to understand the REPO and generate a README for me because why not?
+
 An **unofficial** Android application for [Short of the Week](https://www.shortoftheweek.com), built with modern Android development practices. This app provides a native experience for browsing, searching, and watching the incredible collection of short films curated by the SotW team. I hand parse the Articles that are written with the films instead of a webview due to the complexities.
 
 ## ✨ Features
