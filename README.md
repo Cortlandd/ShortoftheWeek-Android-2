@@ -8,7 +8,7 @@ An **unofficial** Android application for [Short of the Week](https://www.shorto
 
 ## ✨ Features
 
--   **Dynamic Home Feed**: A mixed feed of the latest films and news, similar to the website.
+-   **Dynamic Shorts Feed**: A feed of the latest films, the official website has a mixture of films and news.
 -   **News Section**: A dedicated tab for articles and industry news.
 -   **Advanced Search**: Full-text search with a history of recent queries.
 -   **Local Bookmarks**: Save your favorite films for offline viewing.
@@ -49,11 +49,11 @@ The project is organized by feature, promoting separation of concerns and scalab
 com.cortlandwalker.shortoftheweek
 ├── core/             # Core components: ViewModelReducer, helpers, navigation 
 ├── data/             # Data models, caching (Room), and preference stores
-├── features/         # Individual feature packages (home, news, search, detail, bookmarks) 
-│  └── home/ 
-│     ├── Home.kt          # State, Action, Effect definitions
-│     ├── HomeScreen.kt    # Composable UI 
-│     └── HomeReducer.kt   # ViewModel logic 
+├── features/         # Individual feature packages (shorts, news, search, detail, bookmarks) 
+│  └── shorts/ 
+│     ├── Shorts.kt          # State, Action, Effect definitions
+│     ├── ShortsScreen.kt    # Composable UI 
+│     └── ShortsReducer.kt   # ViewModel logic 
 ├── networking/       # Retrofit API interface and repository implementation 
 │ 
 └── ui/               # Global UI components, theme, and custom views
