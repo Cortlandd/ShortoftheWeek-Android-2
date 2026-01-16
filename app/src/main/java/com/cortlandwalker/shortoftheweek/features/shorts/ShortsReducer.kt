@@ -62,7 +62,7 @@ class ShortsReducer @Inject constructor(
 
         try {
             val items = withContext(Dispatchers.IO) {
-                repo.mixed(page = 1 + currentState.page, limit = 10, forceRefresh = false)
+                repo.films(page = 1 + currentState.page, limit = 10, forceRefresh = false)
             }
             val updatedItems = currentState.items + items
             postAction(ShortsAction.Loaded(updatedItems, fromRefresh = false))
@@ -77,7 +77,7 @@ class ShortsReducer @Inject constructor(
 
         try {
             val items = withContext(Dispatchers.IO) {
-                repo.mixed(page = 1, limit = 10, forceRefresh = forceRefresh)
+                repo.films(page = 1, limit = 10, forceRefresh = forceRefresh)
             }
             postAction(ShortsAction.Loaded(items, fromRefresh = fromRefresh))
         } catch (t: Throwable) {

@@ -78,7 +78,7 @@ class FilmRepository @Inject constructor(
     /** Backwards-compatible name used by reducers. */
     suspend fun getCachedFilm(id: Int): Film? = getFilm(id)
 
-    suspend fun mixed(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> {
+    suspend fun films(page: Int, limit: Int = 10, forceRefresh: Boolean = false): List<Film> {
         val raw = getFeed(key = "mixed:$page:$limit", forceRefresh = forceRefresh, trimPrefix = null) {
             api.films(page = page, limit = limit).data
         }
